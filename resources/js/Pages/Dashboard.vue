@@ -1,9 +1,7 @@
 <template>
     <app-layout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Dashboard
-            </h2>
+            <breadcrumb :items="breadcrumbs"/>
         </template>
 
         <div class="py-12">
@@ -19,11 +17,24 @@
 <script>
     import AppLayout from '@/Layouts/AppLayout'
     import Welcome from '@/Jetstream/Welcome'
+    import Breadcrumb from '@/Components/Breadcrumb'
 
     export default {
         components: {
             AppLayout,
             Welcome,
+            Breadcrumb,
+        },
+
+        computed: {
+            breadcrumbs()
+            {
+                return [                    
+                    {
+                        label: "Dashboard",
+                    }
+                ];
+            }
         },
     }
 </script>

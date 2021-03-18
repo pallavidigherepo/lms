@@ -9,9 +9,9 @@
                     <div class="flex justify-between h-16">
                         <div class="flex">
                             <!-- Logo -->
-                            <div class="flex-shrink-0 flex items-center">
+                            <div class="flex-shrink-0 flex items-center text-2xl">
                                 <inertia-link :href="route('dashboard')">
-                                    <jet-application-mark class="block h-9 w-auto" />
+                                    MeriTest
                                 </inertia-link>
                             </div>
 
@@ -19,6 +19,9 @@
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <jet-nav-link :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
+                                </jet-nav-link>
+                                <jet-nav-link :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">
+                                    Permission
                                 </jet-nav-link>
                             </div>
                         </div>
@@ -223,6 +226,8 @@
 
             <!-- Page Content -->
             <main>
+                <!-- Adding to show flash messages -->
+                <flash-message />
                 <slot></slot>
             </main>
         </div>
@@ -236,6 +241,7 @@
     import JetDropdownLink from '@/Jetstream/DropdownLink'
     import JetNavLink from '@/Jetstream/NavLink'
     import JetResponsiveNavLink from '@/Jetstream/ResponsiveNavLink'
+    import FlashMessage from '@/Components/FlashMessage'
 
     export default {
         components: {
@@ -245,6 +251,7 @@
             JetDropdownLink,
             JetNavLink,
             JetResponsiveNavLink,
+            FlashMessage
         },
 
         data() {
