@@ -1,9 +1,7 @@
 <template>
     <app-layout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Profile
-            </h2>
+            <breadcrumb :items="breadcrumbs"/>
         </template>
 
         <div>
@@ -46,6 +44,7 @@
     import TwoFactorAuthenticationForm from './TwoFactorAuthenticationForm'
     import UpdatePasswordForm from './UpdatePasswordForm'
     import UpdateProfileInformationForm from './UpdateProfileInformationForm'
+    import Breadcrumb from '@/Components/Breadcrumb'
 
     export default {
         props: ['sessions'],
@@ -58,6 +57,18 @@
             TwoFactorAuthenticationForm,
             UpdatePasswordForm,
             UpdateProfileInformationForm,
+            Breadcrumb,
         },
+
+        computed: {
+            breadcrumbs()
+            {
+                return [                    
+                    {
+                        label: "Profile",
+                    }
+                ];
+            },
+        }
     }
 </script>

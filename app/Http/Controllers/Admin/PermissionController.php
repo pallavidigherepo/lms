@@ -48,7 +48,7 @@ class PermissionController extends Controller
             Permission::create($request->validated());
             return redirect()->route('admin.permissions.index')->with('success', 'Permission is created successfully.');
         } catch (\Exception $exception) {
-            return redirect()->route('admin.permissions.index')->with('error', 'Oops, something went wrong. Permission is now created.');
+            return redirect()->route('admin.permissions.index')->with('error', 'Oops, something went wrong. Permission is not created.');
         }
     }
 
