@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Admin\PermissionController;
+use Admin\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,4 +33,5 @@ Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
 //
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function (){
     Route::resource('permissions', PermissionController::class);
+    Route::resource('roles', RoleController::class);
 });

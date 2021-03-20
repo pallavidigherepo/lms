@@ -23,6 +23,9 @@
                                 <jet-nav-link :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">
                                     Permission
                                 </jet-nav-link>
+                                <jet-nav-link :href="route('admin.roles.index')" :active="route().current('admin.roles.index')">
+                                    Roles
+                                </jet-nav-link>
                             </div>
                         </div>
 
