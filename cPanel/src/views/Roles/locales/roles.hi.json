@@ -1,0 +1,15 @@
+{
+    "Roles": "भूमिकाओं",
+    "Name": "नाम",
+    "Permissions": "अनुमति",
+    "Permission": "अनुमति",
+    "Guard Name": "गार्ड का नाम",
+    "NAME": "नाम",
+    "PERMISSIONS": "अनुमति",
+    "GUARD NAME": "गार्ड का नाम",
+    "Permission Name": "अनुमति नाम",
+    "ACTION": "गतिविधि",
+    "Add Role": "भूमिका जोड़ें",
+    "Edit Role": "भूमिका संपादित करें",
+    "Select permissions by toggling individual permissions per category": "प्रति श्रेणी अलग-अलग अनुमतियों को टॉगल करके अनुमतियों का चयन करें।"
+}

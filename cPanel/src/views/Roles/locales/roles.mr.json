@@ -1,0 +1,15 @@
+{
+    "Roles": "भूमिका",
+    "Name": "नाव",
+    "Permissions": "परवानगी",
+    "Permission": "परवानगी",
+    "Guard Name": "पहारेकऱ्याचे नाव",
+    "NAME": "नाव",
+    "PERMISSIONS": "परवानगी",
+    "GUARD NAME": "पहारेकऱ्याचे नाव",
+    "Permission Name": "परवानगीचे नाव",
+    "ACTION": "कृती",
+    "Add Role": "भूमिका जोडा",
+    "Edit Role": "भूमिका संपादित करा",
+    "Select permissions by toggling individual permissions per category": "प्रत्येक श्रेणीसाठी वैयक्तिक परवानग्या टॉगल करून परवानग्या निवडा."
+}

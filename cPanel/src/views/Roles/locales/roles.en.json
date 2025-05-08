@@ -1,0 +1,15 @@
+{
+    "Roles": "Roles",
+    "Name": "Name|NAME",
+    "Permissions": "Permissions",
+    "Permission": "Permission",
+    "Guard Name": "Guard Name|GUARD NAME",
+    "NAME": "NAME",
+    "PERMISSIONS": "PERMISSIONS",
+    "GUARD NAME": "GUARD NAME",
+    "Permission Name": "Permission Name",
+    "ACTION": "ACTION",
+    "Add Role": "Add Role",
+    "Edit Role": "Edit Role",
+    "Select permissions by toggling individual permissions per category": "Select permissions by toggling individual permissions per category."
+}

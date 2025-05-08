@@ -1,0 +1,23 @@
+.landing-page {
+  &__showcase {
+    transition-property: transform, margin;
+    transition-timing-function: theme("transitionTimingFunction.out");
+    transition-duration: theme("transitionDuration.700");
+    margin-top: theme("spacing.20");
+    margin-bottom: theme("spacing.20");
+    @media screen(lg) {
+      margin-top: theme("spacing.5");
+      transform: perspective(1rem) rotateX(0.4deg) scale(0.9);
+    }
+  }
+  &--scrolled {
+    .landing-page__showcase {
+      margin-bottom: 0;
+      margin-top: theme("spacing.20");
+      transform: none;
+      @media screen(lg) {
+        margin-top: theme("spacing.36");
+      }
+    }
+  }
+}
