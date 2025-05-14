@@ -11,7 +11,7 @@ import Button from "@/components/Base/Button";
 import Lucide from "@/components/Base/Lucide";
 import TomSelect from "@/components/Base/TomSelect";
 import { FormInput, FormSelect, FormCheck, FormTextarea } from "@/components/Base/Form";
-import Pagination from "@/components/DataTable/Pagination.vue";
+//import Pagination from "@/components/DataTable/Pagination.vue";
 import Table from "@/components/Base/Table";
 
 const props = defineProps({

@@ -12,6 +12,7 @@ import {
   FormSelect,
   FormSwitch,
   InputGroup,
+  FormTextarea,
   FormHelp,
 } from "@/components/Base/Form";
 import Tippy from "@/components/Base/Tippy";
@@ -22,8 +23,10 @@ import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useVuelidate } from "@vuelidate/core";
 import { required, email, helpers, minLength, numeric } from "@vuelidate/validators";
 import store from "@/stores/index.js";
+import { useUserStore } from "@/stores/user";
 import { useRouter, useRoute } from "vue-router";
 import { ref, reactive, computed, onMounted, provide } from "vue";
+//import FormTextarea from "@/components/Base/Form/FormTextarea.vue";
 
 const submitted = ref(false);
 
@@ -33,6 +36,10 @@ const loading = ref(false);
 
 const route = useRoute();
 const router = useRouter();
+
+const userStore = useUserStore();
+//const roles = userStore.role_list();
+//console.log(roles);
 // Now we must get editing details for the selected item
 // const { t } = useI18n();
 const user = reactive({
@@ -49,6 +56,7 @@ const user = reactive({
   avatar: null,
   role: "",
   designation: "",
+  dob: "",
 });
 
 const rules = computed(() => {
@@ -68,6 +76,18 @@ const rules = computed(() => {
     designation: {
       required: helpers.withMessage("Please select role of user.", required),
     },
+    address: {
+      required: helpers.withMessage("Please enter address.", required),
+    },
+    dob: {
+      required: helpers.withMessage("Please enter date of birth.", required),
+    },
+    gender: {
+      required: helpers.withMessage("Please select gender.", required),
+    },    
+    qualification: {
+      required: helpers.withMessage("Please enter qualification.", required),
+    },
   };
 });
 
@@ -86,7 +106,7 @@ async function submitForm() {
         submitted.value = false;
         router.push({ name: "Users" });
       })
-      .catch((err) => {
+      .catch((err: { response: { data: { message: string; }; }; }) => {
         loading.value = false;
         isErrored.value = true;
         if (err.response) {
@@ -99,11 +119,11 @@ async function submitForm() {
   }
 }
 
-onMounted(() => {
-  store.dispatch("users/role_list");
-});
+// onMounted(() => {
+//   store.dispatch("users/role_list");
+// });
 
-const roles = computed(() => store.getters["users/roleList"]);
+// const roles = computed(() => store.getters["users/roleList"]);
 
 
 const dropzoneSingleRef = ref<DropzoneElement>();
@@ -225,11 +245,11 @@ onMounted(() => {
                         <TomSelect id="form-type" v-model="user.designation" placeholder="Select Type" :options="{
                           allowEmptyOption: false,
                           create: false,
-                          placeholder: 'Select Type',
+                          placeholder: 'Select Role',
                           autocomplete: 'off',
                         }">
                           <option>Select Role</option>
-                          <option :value="role.id" v-for="(role, index) in roles" :key="index">
+                          <option :value="index" v-for="(role, index) in userStore.roles_list" :key="index">
                             {{ role }}
                           </option>
                         </TomSelect>
@@ -238,6 +258,7 @@ onMounted(() => {
                         <div class="error-msg">{{ error.$message }}</div>
                       </div>
                     </div>
+                    {{ userStore.roles_list }}
                   </div>
                   <!-- BEGIN: Post Content -->
                 </div>
@@ -296,6 +317,29 @@ onMounted(() => {
                                     </span>-->
                     </div>
                     <div class="mt-3">
+                      <FormLabel for="form-address" class="form-label">Address</FormLabel>
+
+                      <FormTextarea id="form-address" type="textarea" class="form-control"
+                        placeholder="Enter Address" v-model.trim="user.address" :class="{
+                          'border-danger': submitted && v$.address.$errors.length,
+                        }" />
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.address.$errors" :key="index">
+                        <div class="error-msg">{{ error.$message }}</div>
+                      </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                      <FormLabel for="form-dob" class="form-label">Date of Birth</FormLabel>
+
+                      <FormInput id="form-dob" type="date" class="form-control"
+                        placeholder="Enter Date of Birth" v-model.trim="user.dob" :class="{
+                          'border-danger': submitted && v$.dob.$errors.length,
+                        }" />
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.dob.$errors" :key="index">
+                        <div class="error-msg">{{ error.$message }}</div>
+                      </div>
+                    </div>
+                    <div class="mt-3">
                       <FormLabel for="form-mobile-number" class="form-label">Upload Image</FormLabel>
 
                       <Dropzone refKey="dropzoneSingleRef" :options="{
@@ -315,22 +359,35 @@ onMounted(() => {
                     </Dropzone>
                     </div>
                     <div class="mt-3">
-                      <FormLabel for="form-role" class="form-label">Role
+                      <FormLabel for="form-role" class="form-label">Gender
                       </FormLabel>
                       <div class="mt-2">
-                        <TomSelect id="form-type" v-model="user.designation" placeholder="Select Type" :options="{
+                        <TomSelect id="form-type" v-model="user.gender" placeholder="Select Gender" :options="{
                           allowEmptyOption: false,
                           create: false,
-                          placeholder: 'Select Type',
+                          placeholder: 'Select Gender',
                           autocomplete: 'off',
                         }">
-                          <option>Select Role</option>
-                          <option :value="role.id" v-for="(role, index) in roles" :key="index">
-                            {{ role }}
-                          </option>
+                          <option>Select Gender</option>
+                          <option value="male" :key="'male'">Male</option>
+                          <option value="female" :key="'female'">Female</option>
                         </TomSelect>
                       </div>
-                      <div class="text-danger mt-2" v-for="(error, index) of v$.designation.$errors" :key="index">
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.gender.$errors" :key="index">
+                        <div class="error-msg">{{ error.$message }}</div>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <FormLabel for="form-role" class="form-label">Qualification
+                      </FormLabel>
+                      
+                      <div class="mt-2">
+                        <FormInput id="form-qualification" type="text" class="form-control"
+                        placeholder="Enter qualification" v-model.trim="user.qualification" :class="{
+                          'border-danger': submitted && v$.qualification.$errors.length,
+                        }" />
+                      </div>
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.qualification.$errors" :key="index">
                         <div class="error-msg">{{ error.$message }}</div>
                       </div>
                     </div>
@@ -377,7 +434,7 @@ onMounted(() => {
                 class="absolute top-0 right-0 w-12 h-12 mt-5 mr-3 text-warning/80"
               />
               <h2 class="text-lg font-medium">Tips</h2>
-              <div class="mt-4 font-medium">Price</div>
+              <div class="mt-4 font-medium">Avatar</div>
               <div
                 class="mt-2 text-xs leading-relaxed text-slate-600/90 dark:text-slate-400"
               >
@@ -386,11 +443,11 @@ onMounted(() => {
                   x 300 pixels (For optimal images use a minimum size of 700 x
                   700 pixels).
                 </div>
-                <div class="mt-2">
+                <!-- <div class="mt-2">
                   Select product photos or drag and drop up to 5 photos at once
                   here. Include min. 3 attractive photos to make the product
                   more attractive to buyers.
-                </div>
+                </div> -->
               </div>
             </div>
           </div>
