@@ -18,14 +18,15 @@ import {
 import Tippy from "@/components/Base/Tippy";
 import Button from "@/components/Base/Button";
 import Alert from "@/components/Base/Alert";
-import LoadingIcon from "@/components/Base/LoadingIcon";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useVuelidate } from "@vuelidate/core";
 import { required, email, helpers, minLength, numeric } from "@vuelidate/validators";
 import store from "@/stores/index.js";
-import { useUserStore } from "@/stores/user";
+import { useUserStore } from "@/stores/user/user";
 import { useRouter, useRoute } from "vue-router";
 import { ref, reactive, computed, onMounted, provide } from "vue";
+import Loading from "@/custom_components/Loading.vue";
+import { storeToRefs } from "pinia";
 //import FormTextarea from "@/components/Base/Form/FormTextarea.vue";
 
 const submitted = ref(false);
@@ -36,10 +37,14 @@ const loading = ref(false);
 
 const route = useRoute();
 const router = useRouter();
-
 const userStore = useUserStore();
-//const roles = userStore.role_list();
-//console.log(roles);
+//const { role_list } = useUserStore();
+const { roles } = storeToRefs(useUserStore());
+
+onMounted(() => {
+  userStore.role_list();
+})
+
 // Now we must get editing details for the selected item
 // const { t } = useI18n();
 const user = reactive({
@@ -119,12 +124,6 @@ async function submitForm() {
   }
 }
 
-// onMounted(() => {
-//   store.dispatch("users/role_list");
-// });
-
-// const roles = computed(() => store.getters["users/roleList"]);
-
 
 const dropzoneSingleRef = ref<DropzoneElement>();
 const dropzoneMultipleRef = ref<DropzoneElement>();
@@ -196,7 +195,7 @@ onMounted(() => {
           </Button>
         </div>
       </div>
-      <div class="mt-3.5 grid grid-cols-12 xl:grid-cols-10 gap-y-7 lg:gap-y-10 gap-x-6">
+      <div class="mt-3.5 grid grid-cols-12 xl:grid-cols-10 gap-y-7 lg:gap-y-10 gap-x-6" v-if="!loading">
         <div class="relative flex flex-col col-span-12 lg:col-span-9 xl:col-span-8 gap-y-7">
           <form @submit.prevent="submitForm" class="validate-form">
             <div class="flex flex-col p-5 box box--stacked" id="basic-information">
@@ -208,7 +207,7 @@ onMounted(() => {
                 <div class="intro-y box col-span-12 lg:col-span-12">
                   <div class="p-5">
                     <div class="alert alert-danger show flex items-center mb-2" role="alert" v-if="isErrored">
-                      <AlertOctagonIcon class="w-6 h-6 mr-2" />
+                      <!-- <AlertOctagonIcon class="w-6 h-6 mr-2" /> -->
                       {{ message }}
                     </div>
                     <div>
@@ -249,7 +248,7 @@ onMounted(() => {
                           autocomplete: 'off',
                         }">
                           <option>Select Role</option>
-                          <option :value="index" v-for="(role, index) in userStore.roles_list" :key="index">
+                          <option :value="index" v-for="(role, index) in roles" :key="index">
                             {{ role }}
                           </option>
                         </TomSelect>
@@ -258,7 +257,6 @@ onMounted(() => {
                         <div class="error-msg">{{ error.$message }}</div>
                       </div>
                     </div>
-                    {{ userStore.roles_list }}
                   </div>
                   <!-- BEGIN: Post Content -->
                 </div>
@@ -456,7 +454,7 @@ onMounted(() => {
       
     </div>
   </div>
-  <Loading v-if="loading" fixed></Loading>
+  <Loading v-if="loading" fixed />
 </template>
 
 <style scoped></style>

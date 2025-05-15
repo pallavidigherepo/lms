@@ -1,247 +1,50 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
-import axiosClient from '@/axios'
+//import { ref, watch, computed, onMounted } from 'vue'
 import Lucide from "@/components/Base/Lucide";
 import { Menu, Popover } from "@/components/Base/Headless";
 import Pagination from "@/components/Base/Pagination";
 import { FormCheck, FormInput, FormSelect } from "@/components/Base/Form";
 import Tippy from "@/components/Base/Tippy";
-import users from "@/fakers/users";
 import Button from "@/components/Base/Button";
 import Table from "@/components/Base/Table";
-import _ from "lodash";
-
-import { utils, writeFile } from 'xlsx'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import Edit from './Edit.vue';
-
 import { useRoute, useRouter } from "vue-router";
-
-interface Column {
-  key: string
-  label: string
-}
-
-interface FilterOption {
-  key: string
-  label: string
-  options: string[]
-}
-// :columns="[
-//           { key: 'name', label: 'Name' },
-//           { key: 'mobile', label: 'Contact' },
-//           { key: 'designation', label: 'Position' },
-//           //{ key: 'qualification', label: 'Position', show: false },
-//           { key: 'is_verified', label: 'Status' },
-//         ]"
-//         :filters="[
-//           { key: 'role', label: 'Role', options: ['admin', 'user', 'guest'] },
-//           { key: 'status', label: 'Status', options: ['active', 'inactive'] },
-//         ]"
-
-// interface Props {
-//   apiUrl: string
-//   columns: Column[]
-//   filters?: FilterOption[]
-// }
-
-// const props = defineProps<Props>()
-// const emit = defineEmits(['view', 'edit', 'delete'])
-
-const data = ref<any[]>([])
-const search = ref('')
-const sort = ref({ key: '', order: 'asc' })
-const pagination = ref({ page: 1, perPage: 10, total: 0 })
-const activeFilters = ref<Record<string, string>>({})
-const selectedRows = ref<number[]>([])
-const checkAll = ref(false)
-const apiUrl = ref('http://127.0.0.1:8000/api/v1/users')
-const columns = ref([
-    { key: 'name', label: 'Name' },
-          { key: 'mobile', label: 'Contact' },
-          { key: 'designation', label: 'Position' },
-          //{ key: 'qualification', label: 'Position', show: false },
-          { key: 'is_verified', label: 'Status' },
-]);
-const filters = ref([
-    { key: 'role', label: 'Role', options: ['admin', 'user', 'guest'] },
-          { key: 'status', label: 'Status', options: ['active', 'inactive'] },
-])
-const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.perPage))
-
-const subPages = ['CreateUser', 'EditUser', 'ViewUser'];
 
 const route = useRoute();
 const router = useRouter();
 
-const listing = ref(true);
+import { useTableStore } from '@/stores/user/table'
+import { storeToRefs } from 'pinia';
+const table = useTableStore()
+const { 
+    data,
+    search,
+    sort,
+    pagination,
+    activeFilters,
+    selectedRows,
+    checkAll,
+    columns,
+    filters,
+    totalPages,
+    apiUrl,
+    listing, 
+  } = storeToRefs(table);
 
-
-const fetchData = async () => {
-  const params: Record<string, any> = {
-    page: pagination.value.page,
-    per_page: pagination.value.perPage,
-    search: search.value,
-    sort_by: sort.value.key,
-    sort_order: sort.value.order,
-    ...activeFilters.value,
-  }
-
-  const response = await axiosClient.get(apiUrl.value, { params })
-  data.value = response.data.data
-  pagination.value.total = response.data.total
-  
-  syncCheckState()
-  
-  if ( subPages.includes(route.name) ){
-    listing.value = false;
-  } else {
-    listing.value = true;
-  }
-}
-
-/**
- * Sorts the data based on the specified key. If the current sort key is the same 
- * as the specified key, the sort order is toggled between ascending and descending. 
- * Otherwise, the sort key is updated to the specified key and the order is set to ascending.
- * After updating the sort criteria, it fetches the data accordingly.
- *
- * @param {string} key - The key to sort the data by.
- */
-
-const sortBy = (key: string) => {
-  if (sort.value.key === key) {
-    sort.value.order = sort.value.order === 'asc' ? 'desc' : 'asc'
-  } else {
-    sort.value.key = key
-    sort.value.order = 'asc'
-  }
-  fetchData()
-}
-
-const onSearch = () => {
-  pagination.value.page = 1
-  fetchData()
-}
-
-const onFilterChange = () => {
-  pagination.value.page = 1
-  fetchData()
-}
-
-const prevPage = () => {
-  if (pagination.value.page > 1) {
-    pagination.value.page--
-    fetchData()
-  }
-}
-
-const nextPage = () => {
-  if (pagination.value.page < totalPages.value) {
-    pagination.value.page++
-    fetchData()
-  }
-}
-
-const toggleStatus = async (row: any) => {
-  const newStatus = row.status === 'verified' ? 'unverified' : 'verified'
-  try {
-    await axiosClient.patch(`${apiUrl.value}/${row.id}/status`, { status: newStatus })
-    fetchData()
-  } catch (err) {
-    console.error('Failed to toggle status:', err)
-  }
-}
-
-const calculateProfileCompletion = (row: any): number => {
-  const fields = ['name', 'email', 'role', 'status']
-  const filled = fields.filter(field => row[field] && row[field].toString().trim() !== '').length
-  return Math.round((filled / fields.length) * 100)
-}
-
-const toggleCheckAll = () => {
-  if (checkAll.value) {
-    selectedRows.value = data.value.map(row => row.id)
-  } else {
-    selectedRows.value = []
-  }
-}
-
-const syncCheckState = () => {
-  checkAll.value = data.value.length > 0 && data.value.every(row => selectedRows.value.includes(row.id))
-}
-
-const deleteSelected = async () => {
-  if (confirm('Are you sure you want to delete the selected items?')) {
-    try {
-      await axiosClient.post(`${apiUrl.value}/bulk-delete`, { ids: selectedRows.value })
-      selectedRows.value = []
-      fetchData()
-    } catch (err) {
-      console.error('Bulk delete failed:', err)
-    }
-  }
-}
-
-const exportData = (format: 'csv' | 'xls' | 'pdf') => {
-  const headers = columns.value.map(col => col.label)
-  const rows = data.value.map(row => columns.value.map(col => row[col.key]))
-
-  if (format === 'csv' || format === 'xls') {
-    const worksheet = utils.aoa_to_sheet([headers, ...rows])
-    const workbook = utils.book_new()
-    utils.book_append_sheet(workbook, worksheet, 'Data')
-    writeFile(workbook, `table_export.${format === 'csv' ? 'csv' : 'xlsx'}`)
-  } else if (format === 'pdf') {
-    const doc = new jsPDF()
-    autoTable(doc, { head: [headers], body: rows })
-    doc.save('table_export.pdf')
-  }
-}
-
-const onPerPageChange = () => {
-  pagination.value.page = 1
-  fetchData()
-}
-
-watch(
-  () => filters.value,
-  (newFilters) => {
-    if (newFilters) {
-      for (const filter of newFilters) {
-        activeFilters.value[filter.key] = ''
-      }
-    }
-  },
-  { immediate: true }
-)
-
-watch(() => [apiUrl.value], fetchData, { immediate: true })
-
-watch(
-  () => route.name,
-  (to, from) => {
-    if (to === "Users") {
-      listing.value = true;
-    }
-  }
-);
-
-function view(row: any) {
-  alert(`Viewing: ${JSON.stringify(row)}`)
-}
-
-function edit(row: any) {
-  alert(`Editing: ${JSON.stringify(row)}`)
-}
-
-function handleDelete(row: any) {
-  if (confirm(`Are you sure you want to delete user ${row.name}?`)) {
-    // call API to delete
-    alert(`Deleted user: ${row.id}`)
-  }
-}
+const onSearch: any = () => table.onSearch()
+const sortBy: any = (row: any) => table.sortBy(row)
+const onPerPageChange: any = () => table.onPerPageChange()
+const exportData: any = (format: 'csv' | 'xls' | 'pdf') => table.exportData(format)
+const prevPage: any = () => table.prevPage()
+const onFilterChange: any = () => table.onFilterChange()
+const nextPage: any = () => table.nextPage()
+const toggleStatus: any = (row: any) => table.toggleStatus(row)
+const calculateProfileCompletion: any = () => table.calculateProfileCompletion
+const toggleCheckAll: any = () => table.toggleCheckAll()
+const syncCheckState: any = () => table.syncCheckState()
+const deleteSelected: any = () => table.deleteSelected()
+const view: any = (row: any) => table.view(row)
+const edit: any = (row: any) => table.edit(row)
+const handleDelete: any = (row: any) => table.handleDelete(row)
 
 </script>
 
@@ -351,7 +154,7 @@ function handleDelete(row: any) {
                             <div class="p-2">
                                 <div>
                                     <div class="text-left text-slate-500">Role</div>
-                                    <FormSelect class="flex-1 mt-2">
+                                    <!-- <FormSelect class="flex-1 mt-2">
                                         <template v-for="(faker, fakerKey) in _.take(
                                             users.fakeUsers(),
                                             5
@@ -360,7 +163,7 @@ function handleDelete(row: any) {
                                                 {{ faker.position }}
                                             </option>
                                         </template>
-                                    </FormSelect>
+                                    </FormSelect> -->
                                 </div>
                                 <div class="mt-3">
                                     <div class="text-left text-slate-500">Is Verified</div>
@@ -551,16 +354,16 @@ function handleDelete(row: any) {
                     <Pagination.Link @click="prevPage" :disabled="pagination.page === 1">
                         <Lucide icon="ChevronsLeft" class="w-4 h-4" />
                     </Pagination.Link>
-                    <Pagination.Link @click="nextPage"
-                    :disabled="pagination.page === totalPages">
+                    <Pagination.Link @click="prevPage" :disabled="pagination.page === 1">
                         <Lucide icon="ChevronLeft" class="w-4 h-4" />
                     </Pagination.Link>
                     <Pagination.Link>Page {{ pagination.page }} of {{ totalPages }}</Pagination.Link>
-                    
-                    <Pagination.Link>
+                    <Pagination.Link @click="nextPage"
+                    :disabled="pagination.page === totalPages">
                         <Lucide icon="ChevronRight" class="w-4 h-4" />
                     </Pagination.Link>
-                    <Pagination.Link>
+                    <Pagination.Link @click="nextPage"
+                    :disabled="pagination.page === totalPages">
                         <Lucide icon="ChevronsRight" class="w-4 h-4" />
                     </Pagination.Link>
                 </Pagination>
