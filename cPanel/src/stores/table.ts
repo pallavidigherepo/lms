@@ -32,7 +32,7 @@ interface Pagination {
 export const useTableStore = defineStore('table', () => {
   // --- State ---
   const route = useRoute()
-  const subPages = ['CreateUser', 'EditUser', 'ViewUser']
+  const subPages = ref<string[]>([])
 
   const data = ref<any[]>([])
   const search = ref('')
@@ -41,25 +41,42 @@ export const useTableStore = defineStore('table', () => {
   const activeFilters = ref<Record<string, string>>({})
   const selectedRows = ref<number[]>([])
   const checkAll = ref(false)
-  const apiUrl = ref('users')
+  const apiUrl = ref('')
   const listing = ref(true)
 
-  const columns = ref<Column[]>([
-    { key: 'name', label: 'Name' },
-    { key: 'mobile', label: 'Contact' },
-    { key: 'designation', label: 'Position' },
-    { key: 'is_verified', label: 'Status' },
-  ])
-
-  const filters = ref<FilterOption[]>([
-    { key: 'role', label: 'Role', options: ['admin', 'user', 'guest'] },
-    { key: 'status', label: 'Status', options: ['active', 'inactive'] },
-  ])
+  const columns = ref<Column[]>([])
+  const filters = ref<FilterOption[]>([])
 
   const totalPages = computed(() =>
     Math.ceil(pagination.value.total / pagination.value.perPage)
   )
 
+  // --- Setup ---
+  const setupTable = ({
+    url,
+    tableColumns,
+    tableFilters = [],
+  }: {
+    url: string
+    tableColumns: Column[]
+    tableFilters?: FilterOption[]
+  }) => {
+    apiUrl.value = url
+    columns.value = tableColumns
+    filters.value = tableFilters
+    activeFilters.value = {}
+
+    for (const filter of tableFilters) {
+      activeFilters.value[filter.key] = ''
+    }
+
+    //fetchData()
+  }
+
+  const setSubPages = (pages: string[]) => {
+    subPages.value = pages
+  }
+  
   // --- Actions ---
   const fetchData = async () => {
     const params: Record<string, any> = {
@@ -70,12 +87,13 @@ export const useTableStore = defineStore('table', () => {
       sort_order: sort.value.order,
       ...activeFilters.value,
     }
-
-    const response = await axiosClient.get(apiUrl.value, { params })
-    data.value = response.data.data
-    pagination.value.total = response.data.total
-    syncCheckState()
-    listing.value = !subPages.includes(String(route.name))
+    if (apiUrl.value) {
+      const response = await axiosClient.get(apiUrl.value, { params })
+      data.value = response.data.data
+      pagination.value.total = response.data.total
+      syncCheckState()
+      listing.value = !subPages.value.includes(String(route.name))
+    }
   }
 
   const sortBy = (key: string) => {
@@ -134,9 +152,11 @@ export const useTableStore = defineStore('table', () => {
   }
 
   const toggleCheckAll = () => {
-    //checkAll.value = !checkAll.value
-    selectedRows.value = checkAll.value ? data.value.map(row => row.id) : []
-    alert(selectedRows.value)
+    if (checkAll.value) {
+      selectedRows.value = data.value.map(row => row.id)
+    } else {
+      selectedRows.value = []
+    }
   }
 
   const syncCheckState = () => {
@@ -212,6 +232,10 @@ export const useTableStore = defineStore('table', () => {
     totalPages,
     apiUrl,
     listing,
+
+    // Setup
+    setupTable,
+    setSubPages,
 
     // Actions
     fetchData,

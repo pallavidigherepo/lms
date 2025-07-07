@@ -43,7 +43,14 @@ class UserRepository implements UserRepositoryInterface
      */
     public function create($request)
     {
-        if ($request->validated()) {
+        if (!$request->validated()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Oops, there seems to have some errors.',
+                'errors' => $request->errors(), // This line assumes the request holds errors; adjust if needed.
+            ], 422);
+        }
+
         $inputs = [
             'name' => $request->name,
             'email' => $request->email,
@@ -51,25 +58,33 @@ class UserRepository implements UserRepositoryInterface
         ];
 
         $user = User::create($inputs);
-            $profile = new ProfileUser([
-                'mobile' => $request->mobile,
-                'designation' => $request->designation,
-            ]);
-            $user->profile_user()->save($profile);
-
-            $user->assignRole($request->designation);
-            $response = [
-                'success' => true,
-                'message' => 'User created successfully.',
-                'user' => $user,
-            ];
-        } else {
-            $response = [
-                'success' => false,
-                'message' => 'Oops, there seems to have some errors.',
-                'errors' => $this->validated()->errors(),
-            ];
+        // Handle image upload if exists
+        $imagePath = null;
+        if ($request->hasFile('avatar')) {
+            $imagePath = $request->file('avatar')->store('profile_images', 'public');
         }
+
+        // Create related profile
+        $profile = new ProfileUser([
+            'alt_email' => $request->alt_email,
+            'mobile' => $request->mobile,
+            'alt_mobile' => $request->alt_mobile,
+            'address' => $request->address,
+            'alt_address' => $request->alt_address,
+            'gender' => $request->gender,
+            'qualification' => $request->qualification,
+            'date_of_joining' => $request->date_of_joining,
+            'designation' => $request->designation,
+            'avatar' => $imagePath,
+        ]);
+        $user->profile_user()->save($profile);
+
+        $user->assignRole($request->designation);
+        $response = [
+            'success' => true,
+            'message' => 'User created successfully.',
+            'user' => $user,
+        ];
         return response()->json($response, 200);
     }
 
@@ -121,9 +136,22 @@ class UserRepository implements UserRepositoryInterface
             $user->save($inputs);
             $user->assignRole($request->designation);
 
+            // Handle image upload if exists
+            $imagePath = null;
+            if ($request->hasFile('avatar')) {
+                $imagePath = $request->file('avatar')->store('profile_images', 'public');
+            }
             $profile->update([
+                'alt_email' => $request->alt_email,
                 'mobile' => $request->mobile,
+                'alt_mobile' => $request->alt_mobile,
+                'address' => $request->address,
+                'alt_address' => $request->alt_address,
+                'gender' => $request->gender,
+                'qualification' => $request->qualification,
+                'date_of_joining' => $request->date_of_joining,
                 'designation' => $request->designation,
+                'avatar' => $imagePath,
             ]);
             $response = [
                 'success' => true,

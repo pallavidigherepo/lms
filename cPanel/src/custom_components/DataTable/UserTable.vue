@@ -18,6 +18,7 @@ import autoTable from 'jspdf-autotable'
 interface Column {
   key: string
   label: string
+  show?: boolean // Optional property to control visibility
 }
 
 interface FilterOption {
@@ -181,71 +182,9 @@ watch(() => [props.apiUrl], fetchData, { immediate: true })
 </script>
 
 <template>
-    <div class="flex flex-col md:h-10 gap-y-3 md:items-center md:flex-row">
-        <div class="text-base font-medium group-[.mode--light]:text-white">
-            Users
-        </div>
-        <div class="flex flex-col sm:flex-row gap-x-3 gap-y-2 md:ml-auto">
-            <Button variant="primary"
-                class="group-[.mode--light]:!bg-white/[0.12] group-[.mode--light]:!text-slate-200 group-[.mode--light]:!border-transparent dark:group-[.mode--light]:!bg-darkmode-900/30 dark:!box">
-                <Lucide icon="PenLine" class="stroke-[1.3] w-4 h-4 mr-2" />
-                Add New User
-            </Button>
-        </div>
-    </div>
     <div class="flex flex-col gap-8 mt-3.5">
-        <div class="flex flex-col p-5 box box--stacked">
-            <div class="grid grid-cols-4 gap-5">
-                <div
-                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                    <div class="text-base text-slate-500">Total Staff</div>
-                    <div class="mt-1.5 text-2xl font-medium">457,204</div>
-                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                        <div
-                            class="flex items-center border border-danger/10 bg-danger/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-danger">
-                            3%
-                            <Lucide icon="ChevronDown" class="w-4 h-4 ml-px stroke-[1.5]" />
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                    <div class="text-base text-slate-500">Present Staff</div>
-                    <div class="mt-1.5 text-2xl font-medium">122,721</div>
-                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                        <div
-                            class="flex items-center border border-success/10 bg-success/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-success">
-                            2%
-                            <Lucide icon="ChevronUp" class="w-4 h-4 ml-px stroke-[1.5]" />
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                    <div class="text-base text-slate-500">Absent Staff</div>
-                    <div class="mt-1.5 text-2xl font-mediumm">489,223</div>
-                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                        <div
-                            class="flex items-center border border-danger/10 bg-danger/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-danger">
-                            3%
-                            <Lucide icon="ChevronDown" class="w-4 h-4 ml-px stroke-[1.5]" />
-                        </div>
-                    </div>
-                </div>
-                <div
-                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                    <div class="text-base text-slate-500">Login Activity</div>
-                    <div class="mt-1.5 text-2xl font-mediumm">411,259</div>
-                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                        <div
-                            class="flex items-center border border-success/10 bg-success/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-success">
-                            8%
-                            <Lucide icon="ChevronUp" class="w-4 h-4 ml-px stroke-[1.5]" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <slot name="TableListHeader"></slot>
+        
         <div class="flex flex-col box box--stacked">
             <div class="flex flex-col p-5 sm:items-center sm:flex-row gap-y-2">
                 <div>

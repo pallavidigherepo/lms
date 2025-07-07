@@ -1,970 +1,661 @@
 <script setup lang="ts">
-import _ from "lodash";
-import { ref, provide, onMounted } from "vue";
-import fakerData from "@/utils/faker";
-import Button from "@/components/Base/Button";
-import Pagination from "@/components/Base/Pagination";
-import { FormInput, FormSelect } from "@/components/Base/Form";
-import TinySlider, {
-  type TinySliderElement,
-} from "@/components/Base/TinySlider";
 import Lucide from "@/components/Base/Lucide";
-import Tippy from "@/components/Base/Tippy";
-import Litepicker from "@/components/Base/Litepicker";
-import ReportDonutChart from "@/components/ReportDonutChart";
-import ReportLineChart from "@/components/ReportLineChart";
-import ReportPieChart from "@/components/ReportPieChart";
-import ReportDonutChart1 from "@/components/ReportDonutChart1";
-import SimpleLineChart1 from "@/components/SimpleLineChart1";
-import LeafletMap from "@/components/LeafletMap";
 import { Menu } from "@/components/Base/Headless";
+import TinySlider, { TinySliderElement } from "@/components/Base/TinySlider";
+import { getColor } from "@/utils/colors";
+import ReportLineChart from "@/components/ReportLineChart";
+import ReportDonutChart3 from "@/components/ReportDonutChart3";
+import Pagination from "@/components/Base/Pagination";
+import { FormSelect } from "@/components/Base/Form";
+import Tippy from "@/components/Base/Tippy";
+import eCommerce from "@/fakers/e-commerce";
+import transactions from "@/fakers/transactions";
+import Button from "@/components/Base/Button";
+import Litepicker from "@/components/Base/Litepicker";
 import Table from "@/components/Base/Table";
-import axiosClient from "@/axios";
+import { ref, provide } from "vue";
+import _ from "lodash";
 
-//import GeneralReport from "@/components/Dashboard/GeneralReport.vue";
-const message = ref();
-const isErrored = ref();
-const loading = ref(false);
-const response = ref();
+const generalReportFilter = ref<string>("");
+const sliderRef = ref<TinySliderElement>();
 
-onMounted(() => {
-  fetch();
-});
-
-async function fetch() {
-  loading.value = true;
-  try {
-    const result = await axiosClient.get(`/dashboard`);
-
-    if (result.status != 200) {
-      const error = new Error("Failed to fetch dashboard information.");
-      throw error;
-    }
-
-    loading.value = false;
-    response.value = JSON.parse(JSON.stringify(result.data));
-    //    setEvents(response.value);
-  } catch (e) {
-    isErrored.value = true;
-    message.value = e;
-  } finally {
-    loading.value = false;
-  }
-}
-
-const salesReportFilter = ref<string>("");
-const importantNotesRef = ref<TinySliderElement>();
-
-provide("bind[importantNotesRef]", (el: TinySliderElement) => {
-  importantNotesRef.value = el;
+provide("bind[sliderRef]", (el: TinySliderElement) => {
+  sliderRef.value = el;
 });
 
 const prevImportantNotes = () => {
-  importantNotesRef.value?.tns.goTo("prev");
+  sliderRef.value?.tns.goTo("prev");
 };
 const nextImportantNotes = () => {
-  importantNotesRef.value?.tns.goTo("next");
+  sliderRef.value?.tns.goTo("next");
 };
 </script>
 
 <template>
-<template v-if="response">
-  <div class="grid grid-cols-12 gap-6">
-    <div class="col-span-12 2xl:col-span-9">
-      <div class="grid grid-cols-12 gap-6">
-        <!-- BEGIN: General Report -->
-        <div class="col-span-12 mt-8">
-          <div class="flex items-center h-10 intro-y">
-            <h2 class="mr-5 text-lg font-medium truncate">General Report</h2>
-            <a href="" class="flex items-center ml-auto text-primary">
-              <Lucide icon="RefreshCcw" class="w-4 h-4 mr-3" /> Reload Data
-            </a>
-          </div>
-          <!-- <GeneralReport :response="response" ></GeneralReport> -->
+  <div class="grid grid-cols-12 gap-y-10 gap-x-6">
+    <div class="col-span-12">
+      <div class="flex flex-col md:h-10 gap-y-3 md:items-center md:flex-row">
+        <div class="text-base font-medium group-[.mode--light]:text-white">
+          General Report
         </div>
-        <!-- END: General Report -->
-        <!-- BEGIN: Sales Report -->
-        <!-- <div class="col-span-12 mt-8 lg:col-span-6">
-          <div class="items-center block h-10 intro-y sm:flex">
-            <h2 class="mr-5 text-lg font-medium truncate">Sales Report</h2>
-            <div class="relative mt-3 sm:ml-auto sm:mt-0 text-slate-500">
-              <Lucide
-                icon="Calendar"
-                class="absolute inset-y-0 left-0 z-10 w-4 h-4 my-auto ml-3"
-              />
-              <Litepicker
-                v-model="salesReportFilter"
-                :options="{
-                  autoApply: false,
-                  singleMode: false,
-                  numberOfColumns: 2,
-                  numberOfMonths: 2,
-                  showWeekNumbers: true,
-                  dropdowns: {
-                    minYear: 1990,
-                    maxYear: null,
-                    months: true,
-                    years: true,
-                  },
-                }"
-                class="pl-10 sm:w-56 !box"
-              />
-            </div>
-          </div>
-          <div class="p-5 mt-12 intro-y box sm:mt-5">
-            <div class="flex flex-col md:flex-row md:items-center">
-              <div class="flex">
-                <div>
-                  <div
-                    class="text-lg font-medium text-primary dark:text-slate-300 xl:text-xl"
-                  >
-                    $15,000
-                  </div>
-                  <div class="mt-0.5 text-slate-500">This Month</div>
-                </div>
-                <div
-                  class="w-px h-12 mx-4 border border-r border-dashed border-slate-200 dark:border-darkmode-300 xl:mx-5"
-                ></div>
-                <div>
-                  <div class="text-lg font-medium text-slate-500 xl:text-xl">
-                    $10,000
-                  </div>
-                  <div class="mt-0.5 text-slate-500">Last Month</div>
-                </div>
-              </div>
-              <Menu class="mt-5 md:ml-auto md:mt-0">
-                <Menu.Button
-                  :as="Button"
-                  variant="outline-secondary"
-                  class="font-normal"
-                >
-                  Filter by Category
-                  <Lucide icon="ChevronDown" class="w-4 h-4 ml-2" />
-                </Menu.Button>
-                <Menu.Items class="w-40 h-32 overflow-y-auto">
-                  <Menu.Item>PC & Laptop</Menu.Item>
-                  <Menu.Item>Smartphone</Menu.Item>
-                  <Menu.Item>Electronic</Menu.Item>
-                  <Menu.Item>Photography</Menu.Item>
-                  <Menu.Item>Sport</Menu.Item>
-                </Menu.Items>
-              </Menu>
-            </div>
-            <div
-              :class="[
-                'relative',
-                'before:content-[\'\'] before:block before:absolute before:w-16 before:left-0 before:top-0 before:bottom-0 before:ml-10 before:mb-7 before:bg-gradient-to-r before:from-white before:via-white/80 before:to-transparent before:dark:from-darkmode-600',
-                'after:content-[\'\'] after:block after:absolute after:w-16 after:right-0 after:top-0 after:bottom-0 after:mb-7 after:bg-gradient-to-l after:from-white after:via-white/80 after:to-transparent after:dark:from-darkmode-600',
-              ]"
+        <div class="flex flex-col sm:flex-row gap-x-3 gap-y-2 md:ml-auto">
+          <div class="relative">
+            <Lucide
+              icon="CalendarCheck2"
+              class="absolute group-[.mode--light]:!text-slate-200 inset-y-0 left-0 z-10 w-4 h-4 my-auto ml-3 stroke-[1.3]"
+            />
+            <FormSelect
+              class="sm:w-44 rounded-[0.5rem] group-[.mode--light]:bg-chevron-white group-[.mode--light]:!bg-white/[0.12] group-[.mode--light]:!text-slate-200 group-[.mode--light]:!border-transparent dark:group-[.mode--light]:!bg-darkmode-900/30 dark:!box pl-9 dark:group-[.mode--light]:!bg-darkmode-900/30 dark:!box"
             >
-              <ReportLineChart :height="275" class="mt-6 -mb-6" />
-            </div>
-          </div>
-        </div> -->
-        <!-- END: Sales Report -->
-        <!-- BEGIN: Weekly Top Seller -->
-        <!-- <div class="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
-          <div class="flex items-center h-10 intro-y">
-            <h2 class="mr-5 text-lg font-medium truncate">Weekly Top Seller</h2>
-            <a href="" class="ml-auto truncate text-primary"> Show More </a>
-          </div>
-          <div class="p-5 mt-5 intro-y box">
-            <div class="mt-3">
-              <ReportPieChart :height="213" />
-            </div>
-            <div class="mx-auto mt-8 w-52 sm:w-auto">
-              <div class="flex items-center">
-                <div class="w-2 h-2 mr-3 rounded-full bg-primary"></div>
-                <span class="truncate">17 - 30 Years old</span>
-                <span class="ml-auto font-medium">62%</span>
-              </div>
-              <div class="flex items-center mt-4">
-                <div class="w-2 h-2 mr-3 rounded-full bg-pending"></div>
-                <span class="truncate">31 - 50 Years old</span>
-                <span class="ml-auto font-medium">33%</span>
-              </div>
-              <div class="flex items-center mt-4">
-                <div class="w-2 h-2 mr-3 rounded-full bg-warning"></div>
-                <span class="truncate">&gt;= 50 Years old</span>
-                <span class="ml-auto font-medium">10%</span>
-              </div>
-            </div>
-          </div>
-        </div> -->
-        <!-- END: Weekly Top Seller -->
-        <!-- BEGIN: Sales Report -->
-        <!-- <div class="col-span-12 mt-8 sm:col-span-6 lg:col-span-3">
-          <div class="flex items-center h-10 intro-y">
-            <h2 class="mr-5 text-lg font-medium truncate">Sales Report</h2>
-            <a href="" class="ml-auto truncate text-primary"> Show More </a>
-          </div>
-          <div class="p-5 mt-5 intro-y box">
-            <div class="mt-3">
-              <ReportDonutChart :height="213" />
-            </div>
-            <div class="mx-auto mt-8 w-52 sm:w-auto">
-              <div class="flex items-center">
-                <div class="w-2 h-2 mr-3 rounded-full bg-primary"></div>
-                <span class="truncate">17 - 30 Years old</span>
-                <span class="ml-auto font-medium">62%</span>
-              </div>
-              <div class="flex items-center mt-4">
-                <div class="w-2 h-2 mr-3 rounded-full bg-pending"></div>
-                <span class="truncate">31 - 50 Years old</span>
-                <span class="ml-auto font-medium">33%</span>
-              </div>
-              <div class="flex items-center mt-4">
-                <div class="w-2 h-2 mr-3 rounded-full bg-warning"></div>
-                <span class="truncate">&gt;= 50 Years old</span>
-                <span class="ml-auto font-medium">10%</span>
-              </div>
-            </div>
-          </div>
-        </div> -->
-        <!-- END: Sales Report -->
-        <!-- BEGIN: Official Store -->
-        <!-- <div class="col-span-12 mt-6 xl:col-span-8">
-          <div class="items-center block h-10 intro-y sm:flex">
-            <h2 class="mr-5 text-lg font-medium truncate">Official Store</h2>
-            <div class="relative mt-3 sm:ml-auto sm:mt-0 text-slate-500">
-              <Lucide
-                icon="MapPin"
-                class="absolute inset-y-0 left-0 z-10 w-4 h-4 my-auto ml-3"
-              />
-              <FormInput
-                type="text"
-                class="pl-10 sm:w-56 !box"
-                placeholder="Filter by city"
-              />
-            </div>
-          </div>
-          <div class="p-5 mt-12 intro-y box sm:mt-5">
-            <div>
-              250 Official stores in 21 countries, click the marker to see
-              location details.
-            </div>
-            <LeafletMap class="h-[310px] mt-5 rounded-md bg-slate-200" />
-          </div>
-        </div> -->
-        <!-- END: Official Store -->
-        <!-- BEGIN: Weekly Best Sellers -->
-        <!-- <div class="col-span-12 mt-6 xl:col-span-4">
-          <div class="flex items-center h-10 intro-y">
-            <h2 class="mr-5 text-lg font-medium truncate">
-              Weekly Best Sellers
-            </h2>
-          </div>
-          <div class="mt-5">
-            <div
-              v-for="(faker, fakerKey) in _.take(fakerData, 4)"
-              :key="fakerKey"
-              class="intro-y"
-            >
-              <div class="flex items-center px-4 py-4 mb-3 box zoom-in">
-                <div
-                  class="flex-none w-10 h-10 overflow-hidden rounded-md image-fit"
-                >
-                  <img
-                    alt="Midone Tailwind HTML Admin Template"
-                    :src="faker.photos[0]"
-                  />
-                </div>
-                <div class="ml-4 mr-auto">
-                  <div class="font-medium">{{ faker.users[0].name }}</div>
-                  <div class="text-slate-500 text-xs mt-0.5">
-                    {{ faker.dates[0] }}
-                  </div>
-                </div>
-                <div
-                  class="px-2 py-1 text-xs font-medium text-white rounded-full cursor-pointer bg-success"
-                >
-                  137 Sales
-                </div>
-              </div>
-            </div>
-            <a
-              href=""
-              class="block w-full py-4 text-center border border-dotted rounded-md intro-y border-slate-400 dark:border-darkmode-300 text-slate-500"
-            >
-              View More
-            </a>
-          </div>
-        </div> -->
-        <!-- END: Weekly Best Sellers -->
-        <!-- BEGIN: General Report -->
-        <!-- <div class="grid grid-cols-12 col-span-12 gap-6 mt-8">
-          <div class="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-            <div class="p-5 box zoom-in">
-              <div class="flex items-center">
-                <div class="flex-none w-2/4">
-                  <div class="text-lg font-medium truncate">Target Sales</div>
-                  <div class="mt-1 text-slate-500">300 Sales</div>
-                </div>
-                <div class="relative flex-none ml-auto">
-                  <ReportDonutChart1 :width="90" :height="90" />
-                  <div
-                    class="absolute top-0 left-0 flex items-center justify-center w-full h-full font-medium"
-                  >
-                    20%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-            <div class="p-5 box zoom-in">
-              <div class="flex">
-                <div class="mr-3 text-lg font-medium truncate">
-                  Social Media
-                </div>
-                <div
-                  class="flex items-center px-2 py-1 ml-auto text-xs truncate rounded-full cursor-pointer bg-slate-100 dark:bg-darkmode-400 text-slate-500"
-                >
-                  320 Followers
-                </div>
-              </div>
-              <div class="mt-1">
-                <SimpleLineChart1 :height="58" class="-ml-1" />
-              </div>
-            </div>
-          </div>
-          <div class="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-            <div class="p-5 box zoom-in">
-              <div class="flex items-center">
-                <div class="flex-none w-2/4">
-                  <div class="text-lg font-medium truncate">New Products</div>
-                  <div class="mt-1 text-slate-500">1450 Products</div>
-                </div>
-                <div class="relative flex-none ml-auto">
-                  <ReportDonutChart1 :width="90" :height="90" />
-                  <div
-                    class="absolute top-0 left-0 flex items-center justify-center w-full h-full font-medium"
-                  >
-                    45%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-span-12 sm:col-span-6 2xl:col-span-3 intro-y">
-            <div class="p-5 box zoom-in">
-              <div class="flex">
-                <div class="mr-3 text-lg font-medium truncate">Posted Ads</div>
-                <div
-                  class="flex items-center px-2 py-1 ml-auto text-xs truncate rounded-full cursor-pointer bg-slate-100 dark:bg-darkmode-400 text-slate-500"
-                >
-                  180 Campaign
-                </div>
-              </div>
-              <div class="mt-1">
-                <SimpleLineChart1 :height="58" class="-ml-1" />
-              </div>
-            </div>
-          </div>
-        </div> -->
-        <!-- END: General Report -->
-        <!-- BEGIN: Weekly Top Products -->
-        <!-- <div class="col-span-12 mt-6">
-          <div class="items-center block h-10 intro-y sm:flex">
-            <h2 class="mr-5 text-lg font-medium truncate">
-              Weekly Top Products
-            </h2>
-            <div class="flex items-center mt-3 sm:ml-auto sm:mt-0">
-              <Button
-                class="flex items-center !box text-slate-600 dark:text-slate-300"
-              >
-                <Lucide icon="FileText" class="hidden w-4 h-4 mr-2 sm:block" />
-                Export to Excel
-              </Button>
-              <Button
-                class="flex items-center ml-3 !box text-slate-600 dark:text-slate-300"
-              >
-                <Lucide icon="FileText" class="hidden w-4 h-4 mr-2 sm:block" />
-                Export to PDF
-              </Button>
-            </div>
-          </div>
-          <div class="mt-8 overflow-auto intro-y lg:overflow-visible sm:mt-0">
-            <Table class="border-spacing-y-[10px] border-separate sm:mt-2">
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th class="border-b-0 whitespace-nowrap">
-                    IMAGES
-                  </Table.Th>
-                  <Table.Th class="border-b-0 whitespace-nowrap">
-                    PRODUCT NAME
-                  </Table.Th>
-                  <Table.Th class="text-center border-b-0 whitespace-nowrap">
-                    STOCK
-                  </Table.Th>
-                  <Table.Th class="text-center border-b-0 whitespace-nowrap">
-                    STATUS
-                  </Table.Th>
-                  <Table.Th class="text-center border-b-0 whitespace-nowrap">
-                    ACTIONS
-                  </Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>
-                <Table.Tr
-                  v-for="(faker, fakerKey) in _.take(fakerData, 4)"
-                  :key="fakerKey"
-                  class="intro-x"
-                >
-                  <Table.Td
-                    class="box w-40 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600"
-                  >
-                    <div class="flex">
-                      <div class="w-10 h-10 image-fit zoom-in">
-                        <Tippy
-                          as="img"
-                          alt="Midone Tailwind HTML Admin Template"
-                          class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-                          :src="faker.images[0]"
-                          :content="`Uploaded at ${faker.dates[0]}`"
-                        />
-                      </div>
-                      <div class="w-10 h-10 -ml-5 image-fit zoom-in">
-                        <Tippy
-                          as="img"
-                          alt="Midone Tailwind HTML Admin Template"
-                          class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-                          :src="faker.images[1]"
-                          :content="`Uploaded at ${faker.dates[1]}`"
-                        />
-                      </div>
-                      <div class="w-10 h-10 -ml-5 image-fit zoom-in">
-                        <Tippy
-                          as="img"
-                          alt="Midone Tailwind HTML Admin Template"
-                          class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
-                          :src="faker.images[2]"
-                          :content="`Uploaded at ${faker.dates[2]}`"
-                        />
-                      </div>
-                    </div>
-                  </Table.Td>
-                  <Table.Td
-                    class="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600"
-                  >
-                    <a href="" class="font-medium whitespace-nowrap">
-                      {{ faker.products[0].name }}
-                    </a>
-                    <div
-                      class="text-slate-500 text-xs whitespace-nowrap mt-0.5"
-                    >
-                      {{ faker.products[0].category }}
-                    </div>
-                  </Table.Td>
-                  <Table.Td
-                    class="box rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600"
-                  >
-                    {{ faker.stocks[0] }}
-                  </Table.Td>
-                  <Table.Td
-                    class="box w-40 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600"
-                  >
-                    <div
-                      :class="[
-                        'flex items-center justify-center',
-                        { 'text-success': faker.trueFalse[0] },
-                        { 'text-danger': !faker.trueFalse[0] },
-                      ]"
-                    >
-                      <Lucide icon="CheckSquare" class="w-4 h-4 mr-2" />
-                      {{ faker.trueFalse[0] ? "Active" : "Inactive" }}
-                    </div>
-                  </Table.Td>
-                  <Table.Td
-                    :class="[
-                      'box w-56 rounded-l-none rounded-r-none border-x-0 shadow-[5px_3px_5px_#00000005] first:rounded-l-[0.6rem] first:border-l last:rounded-r-[0.6rem] last:border-r dark:bg-darkmode-600',
-                      'before:absolute before:inset-y-0 before:left-0 before:my-auto before:block before:h-8 before:w-px before:bg-slate-200 before:dark:bg-darkmode-400',
-                    ]"
-                  >
-                    <div class="flex items-center justify-center">
-                      <a class="flex items-center mr-3" href="">
-                        <Lucide icon="CheckSquare" class="w-4 h-4 mr-1" />
-                        Edit
-                      </a>
-                      <a class="flex items-center text-danger" href="">
-                        <Lucide icon="Trash2" class="w-4 h-4 mr-1" />
-                        Delete
-                      </a>
-                    </div>
-                  </Table.Td>
-                </Table.Tr>
-              </Table.Tbody>
-            </Table>
-          </div>
-          <div
-            class="flex flex-wrap items-center mt-3 intro-y sm:flex-row sm:flex-nowrap"
-          >
-            <Pagination class="w-full sm:w-auto sm:mr-auto">
-              <Pagination.Link>
-                <Lucide icon="ChevronsLeft" class="w-4 h-4" />
-              </Pagination.Link>
-              <Pagination.Link>
-                <Lucide icon="ChevronLeft" class="w-4 h-4" />
-              </Pagination.Link>
-              <Pagination.Link>...</Pagination.Link>
-              <Pagination.Link>1</Pagination.Link>
-              <Pagination.Link active>2</Pagination.Link>
-              <Pagination.Link>3</Pagination.Link>
-              <Pagination.Link>...</Pagination.Link>
-              <Pagination.Link>
-                <Lucide icon="ChevronRight" class="w-4 h-4" />
-              </Pagination.Link>
-              <Pagination.Link>
-                <Lucide icon="ChevronsRight" class="w-4 h-4" />
-              </Pagination.Link>
-            </Pagination>
-            <FormSelect class="w-20 mt-3 !box sm:mt-0">
-              <option>10</option>
-              <option>25</option>
-              <option>35</option>
-              <option>50</option>
+              <option value="custom-date">Custom Date</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
             </FormSelect>
           </div>
-        </div> -->
-        <!-- END: Weekly Top Products -->
-      </div>
-    </div>
-    <!-- <div class="col-span-12 2xl:col-span-3">
-      <div class="pb-10 -mb-10 2xl:border-l">
-        <div class="grid grid-cols-12 2xl:pl-6 gap-x-6 2xl:gap-x-0 gap-y-6">
-          
-          <div
-            class="col-span-12 mt-3 md:col-span-6 xl:col-span-4 2xl:col-span-12 2xl:mt-8"
-          >
-            <div class="flex items-center h-10 intro-x">
-              <h2 class="mr-5 text-lg font-medium truncate">Transactions</h2>
-            </div>
-            <div class="mt-5">
-              <div
-                v-for="(faker, fakerKey) in _.take(fakerData, 5)"
-                :key="fakerKey"
-                class="intro-x"
-              >
-                <div class="flex items-center px-5 py-3 mb-3 box zoom-in">
-                  <div
-                    class="flex-none w-10 h-10 overflow-hidden rounded-full image-fit"
-                  >
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      :src="faker.photos[0]"
-                    />
-                  </div>
-                  <div class="ml-4 mr-auto">
-                    <div class="font-medium">{{ faker.users[0].name }}</div>
-                    <div class="text-slate-500 text-xs mt-0.5">
-                      {{ faker.dates[0] }}
-                    </div>
-                  </div>
-                  <div
-                    :class="{
-                      'text-success': faker.trueFalse[0],
-                      'text-danger': !faker.trueFalse[0],
-                    }"
-                  >
-                    {{ faker.trueFalse[0] ? "+" : "-" }}${{ faker.totals[0] }}
-                  </div>
-                </div>
-              </div>
-              <a
-                href=""
-                class="block w-full py-3 text-center border border-dotted rounded-md intro-x border-slate-400 dark:border-darkmode-300 text-slate-500"
-              >
-                View More
-              </a>
-            </div>
+          <div class="relative">
+            <Lucide
+              icon="Calendar"
+              class="absolute group-[.mode--light]:!text-slate-200 inset-y-0 left-0 z-10 w-4 h-4 my-auto ml-3 stroke-[1.3]"
+            />
+            <Litepicker
+              v-model="generalReportFilter"
+              :options="{
+                autoApply: false,
+                singleMode: false,
+                numberOfColumns: 2,
+                numberOfMonths: 2,
+                showWeekNumbers: true,
+                dropdowns: {
+                  minYear: 1990,
+                  maxYear: null,
+                  months: true,
+                  years: true,
+                },
+              }"
+              class="pl-9 sm:w-64 rounded-[0.5rem] group-[.mode--light]:!bg-white/[0.12] group-[.mode--light]:!text-slate-200 group-[.mode--light]:!border-transparent dark:group-[.mode--light]:!bg-darkmode-900/30 dark:!box dark:group-[.mode--light]:!bg-darkmode-900/30 dark:!box"
+            />
           </div>
-          
-          <div
-            class="col-span-12 mt-3 md:col-span-6 xl:col-span-4 2xl:col-span-12"
-          >
-            <div class="flex items-center h-10 intro-x">
-              <h2 class="mr-5 text-lg font-medium truncate">
-                Recent Activities
-              </h2>
-              <a href="" class="ml-auto truncate text-primary"> Show More </a>
-            </div>
-            <div
-              class="mt-5 relative before:block before:absolute before:w-px before:h-[85%] before:bg-slate-200 before:dark:bg-darkmode-400 before:ml-5 before:mt-5"
-            >
-              <div class="relative flex items-center mb-3 intro-x">
-                <div
-                  class="before:block before:absolute before:w-20 before:h-px before:bg-slate-200 before:dark:bg-darkmode-400 before:mt-5 before:ml-5"
-                >
-                  <div
-                    class="flex-none w-10 h-10 overflow-hidden rounded-full image-fit"
-                  >
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      :src="fakerData[9].photos[0]"
-                    />
-                  </div>
-                </div>
-                <div class="flex-1 px-5 py-3 ml-4 box zoom-in">
-                  <div class="flex items-center">
-                    <div class="font-medium">
-                      {{ fakerData[9].users[0].name }}
-                    </div>
-                    <div class="ml-auto text-xs text-slate-500">07:00 PM</div>
-                  </div>
-                  <div class="mt-1 text-slate-500">Has joined the team</div>
-                </div>
-              </div>
-              <div class="relative flex items-center mb-3 intro-x">
-                <div
-                  class="before:block before:absolute before:w-20 before:h-px before:bg-slate-200 before:dark:bg-darkmode-400 before:mt-5 before:ml-5"
-                >
-                  <div
-                    class="flex-none w-10 h-10 overflow-hidden rounded-full image-fit"
-                  >
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      :src="fakerData[8].photos[0]"
-                    />
-                  </div>
-                </div>
-                <div class="flex-1 px-5 py-3 ml-4 box zoom-in">
-                  <div class="flex items-center">
-                    <div class="font-medium">
-                      {{ fakerData[8].users[0].name }}
-                    </div>
-                    <div class="ml-auto text-xs text-slate-500">07:00 PM</div>
-                  </div>
-                  <div class="text-slate-500">
-                    <div class="mt-1">Added 3 new photos</div>
-                    <div class="flex mt-2">
-                      <Tippy
-                        as="div"
-                        class="w-8 h-8 mr-1 image-fit zoom-in"
-                        :content="fakerData[0].products[0].name"
-                      >
-                        <img
-                          alt="Midone Tailwind HTML Admin Template"
-                          class="border border-white rounded-md"
-                          :src="fakerData[8].images[0]"
-                        />
-                      </Tippy>
-                      <Tippy
-                        as="div"
-                        class="w-8 h-8 mr-1 image-fit zoom-in"
-                        :content="fakerData[1].products[0].name"
-                      >
-                        <img
-                          alt="Midone Tailwind HTML Admin Template"
-                          class="border border-white rounded-md"
-                          :src="fakerData[8].images[1]"
-                        />
-                      </Tippy>
-                      <Tippy
-                        as="div"
-                        class="w-8 h-8 mr-1 image-fit zoom-in"
-                        :content="fakerData[2].products[0].name"
-                      >
-                        <img
-                          alt="Midone Tailwind HTML Admin Template"
-                          class="border border-white rounded-md"
-                          :src="fakerData[8].images[2]"
-                        />
-                      </Tippy>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="my-4 text-xs text-center intro-x text-slate-500">
-                12 November
-              </div>
-              <div class="relative flex items-center mb-3 intro-x">
-                <div
-                  class="before:block before:absolute before:w-20 before:h-px before:bg-slate-200 before:dark:bg-darkmode-400 before:mt-5 before:ml-5"
-                >
-                  <div
-                    class="flex-none w-10 h-10 overflow-hidden rounded-full image-fit"
-                  >
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      :src="fakerData[7].photos[0]"
-                    />
-                  </div>
-                </div>
-                <div class="flex-1 px-5 py-3 ml-4 box zoom-in">
-                  <div class="flex items-center">
-                    <div class="font-medium">
-                      {{ fakerData[7].users[0].name }}
-                    </div>
-                    <div class="ml-auto text-xs text-slate-500">07:00 PM</div>
-                  </div>
-                  <div class="mt-1 text-slate-500">
-                    Has changed
-                    <a class="text-primary" href="">
-                      {{ fakerData[7].products[0].name }}
-                    </a>
-                    price and description
-                  </div>
-                </div>
-              </div>
-              <div class="relative flex items-center mb-3 intro-x">
-                <div
-                  class="before:block before:absolute before:w-20 before:h-px before:bg-slate-200 before:dark:bg-darkmode-400 before:mt-5 before:ml-5"
-                >
-                  <div
-                    class="flex-none w-10 h-10 overflow-hidden rounded-full image-fit"
-                  >
-                    <img
-                      alt="Midone Tailwind HTML Admin Template"
-                      :src="fakerData[6].photos[0]"
-                    />
-                  </div>
-                </div>
-                <div class="flex-1 px-5 py-3 ml-4 box zoom-in">
-                  <div class="flex items-center">
-                    <div class="font-medium">
-                      {{ fakerData[6].users[0].name }}
-                    </div>
-                    <div class="ml-auto text-xs text-slate-500">07:00 PM</div>
-                  </div>
-                  <div class="mt-1 text-slate-500">
-                    Has changed
-                    <a class="text-primary" href="">
-                      {{ fakerData[6].products[0].name }}
-                    </a>
-                    description
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div
-            class="col-span-12 mt-3 md:col-span-6 xl:col-span-12 xl:col-start-1 xl:row-start-1 2xl:col-start-auto 2xl:row-start-auto"
-          >
-            <div class="flex items-center h-10 intro-x">
-              <h2 class="mr-auto text-lg font-medium truncate">
-                Important Notes
-              </h2>
-              <Button
-                data-carousel="important-notes"
-                data-target="prev"
-                class="px-2 mr-2 border-slate-300 text-slate-600 dark:text-slate-300"
-                @click="prevImportantNotes"
-              >
-                <Lucide icon="ChevronLeft" class="w-4 h-4" />
-              </Button>
-              <Button
-                data-carousel="important-notes"
-                data-target="next"
-                class="px-2 mr-2 border-slate-300 text-slate-600 dark:text-slate-300"
-                @click="nextImportantNotes"
-              >
-                <Lucide icon="ChevronRight" class="w-4 h-4" />
-              </Button>
-            </div>
-            <div class="mt-5 intro-x">
-              <div class="box zoom-in">
-                <TinySlider refKey="importantNotesRef">
-                  <div class="p-5">
-                    <div class="text-base font-medium truncate">
-                      Lorem Ipsum is simply dummy text
-                    </div>
-                    <div class="mt-1 text-slate-400">20 Hours ago</div>
-                    <div class="mt-1 text-justify text-slate-500">
-                      Lorem Ipsum is simply dummy text of the printing and
-                      typesetting industry. Lorem Ipsum has been the industry's
-                      standard dummy text ever since the 1500s.
-                    </div>
-                    <div class="flex mt-5 font-medium">
-                      <Button
-                        variant="secondary"
-                        type="button"
-                        class="px-2 py-1"
-                      >
-                        View Notes
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        type="button"
-                        class="px-2 py-1 ml-auto"
-                      >
-                        Dismiss
-                      </Button>
-                    </div>
-                  </div>
-                  <div class="p-5">
-                    <div class="text-base font-medium truncate">
-                      Lorem Ipsum is simply dummy text
-                    </div>
-                    <div class="mt-1 text-slate-400">20 Hours ago</div>
-                    <div class="mt-1 text-justify text-slate-500">
-                      Lorem Ipsum is simply dummy text of the printing and
-                      typesetting industry. Lorem Ipsum has been the industry's
-                      standard dummy text ever since the 1500s.
-                    </div>
-                    <div class="flex mt-5 font-medium">
-                      <Button
-                        variant="secondary"
-                        type="button"
-                        class="px-2 py-1"
-                      >
-                        View Notes
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        type="button"
-                        class="px-2 py-1 ml-auto"
-                      >
-                        Dismiss
-                      </Button>
-                    </div>
-                  </div>
-                  <div class="p-5">
-                    <div class="text-base font-medium truncate">
-                      Lorem Ipsum is simply dummy text
-                    </div>
-                    <div class="mt-1 text-slate-400">20 Hours ago</div>
-                    <div class="mt-1 text-justify text-slate-500">
-                      Lorem Ipsum is simply dummy text of the printing and
-                      typesetting industry. Lorem Ipsum has been the industry's
-                      standard dummy text ever since the 1500s.
-                    </div>
-                    <div class="flex mt-5 font-medium">
-                      <Button
-                        variant="secondary"
-                        type="button"
-                        class="px-2 py-1"
-                      >
-                        View Notes
-                      </Button>
-                      <Button
-                        variant="outline-secondary"
-                        type="button"
-                        class="px-2 py-1 ml-auto"
-                      >
-                        Dismiss
-                      </Button>
-                    </div>
-                  </div>
-                </TinySlider>
-              </div>
-            </div>
-          </div>
-          
-          <div
-            class="col-span-12 mt-3 md:col-span-6 xl:col-span-4 2xl:col-span-12 xl:col-start-1 xl:row-start-2 2xl:col-start-auto 2xl:row-start-auto"
-          >
-            <div class="flex items-center h-10 intro-x">
-              <h2 class="mr-5 text-lg font-medium truncate">Schedules</h2>
-              <a
-                href=""
-                class="flex items-center ml-auto truncate text-primary"
-              >
-                <Lucide icon="Plus" class="w-4 h-4 mr-1" /> Add New Schedules
-              </a>
-            </div>
-            <div class="mt-5">
-              <div class="intro-x box">
-                <div class="p-5">
-                  <div class="flex">
-                    <Lucide icon="ChevronLeft" class="w-5 h-5 text-slate-500" />
-                    <div class="mx-auto text-base font-medium">April</div>
-                    <Lucide
-                      icon="ChevronRight"
-                      class="w-5 h-5 text-slate-500"
-                    />
-                  </div>
-                  <div class="grid grid-cols-7 gap-4 mt-5 text-center">
-                    <div class="font-medium">Su</div>
-                    <div class="font-medium">Mo</div>
-                    <div class="font-medium">Tu</div>
-                    <div class="font-medium">We</div>
-                    <div class="font-medium">Th</div>
-                    <div class="font-medium">Fr</div>
-                    <div class="font-medium">Sa</div>
-                    <div class="py-0.5 rounded relative text-slate-500">29</div>
-                    <div class="py-0.5 rounded relative text-slate-500">30</div>
-                    <div class="py-0.5 rounded relative text-slate-500">31</div>
-                    <div class="py-0.5 rounded relative">1</div>
-                    <div class="py-0.5 rounded relative">2</div>
-                    <div class="py-0.5 rounded relative">3</div>
-                    <div class="py-0.5 rounded relative">4</div>
-                    <div class="py-0.5 rounded relative">5</div>
-                    <div
-                      class="py-0.5 bg-success/20 dark:bg-success/30 rounded relative"
-                    >
-                      6
-                    </div>
-                    <div class="py-0.5 rounded relative">7</div>
-                    <div class="py-0.5 bg-primary text-white rounded relative">
-                      8
-                    </div>
-                    <div class="py-0.5 rounded relative">9</div>
-                    <div class="py-0.5 rounded relative">10</div>
-                    <div class="py-0.5 rounded relative">11</div>
-                    <div class="py-0.5 rounded relative">12</div>
-                    <div class="py-0.5 rounded relative">13</div>
-                    <div class="py-0.5 rounded relative">14</div>
-                    <div class="py-0.5 rounded relative">15</div>
-                    <div class="py-0.5 rounded relative">16</div>
-                    <div class="py-0.5 rounded relative">17</div>
-                    <div class="py-0.5 rounded relative">18</div>
-                    <div class="py-0.5 rounded relative">19</div>
-                    <div class="py-0.5 rounded relative">20</div>
-                    <div class="py-0.5 rounded relative">21</div>
-                    <div class="py-0.5 rounded relative">22</div>
-                    <div
-                      class="py-0.5 bg-pending/20 dark:bg-pending/30 rounded relative"
-                    >
-                      23
-                    </div>
-                    <div class="py-0.5 rounded relative">24</div>
-                    <div class="py-0.5 rounded relative">25</div>
-                    <div class="py-0.5 rounded relative">26</div>
-                    <div
-                      class="py-0.5 bg-primary/10 dark:bg-primary/50 rounded relative"
-                    >
-                      27
-                    </div>
-                    <div class="py-0.5 rounded relative">28</div>
-                    <div class="py-0.5 rounded relative">29</div>
-                    <div class="py-0.5 rounded relative">30</div>
-                    <div class="py-0.5 rounded relative text-slate-500">1</div>
-                    <div class="py-0.5 rounded relative text-slate-500">2</div>
-                    <div class="py-0.5 rounded relative text-slate-500">3</div>
-                    <div class="py-0.5 rounded relative text-slate-500">4</div>
-                    <div class="py-0.5 rounded relative text-slate-500">5</div>
-                    <div class="py-0.5 rounded relative text-slate-500">6</div>
-                    <div class="py-0.5 rounded relative text-slate-500">7</div>
-                    <div class="py-0.5 rounded relative text-slate-500">8</div>
-                    <div class="py-0.5 rounded relative text-slate-500">9</div>
-                  </div>
-                </div>
-                <div class="p-5 border-t border-slate-200/60">
-                  <div class="flex items-center">
-                    <div class="w-2 h-2 mr-3 rounded-full bg-pending"></div>
-                    <span class="truncate">UI/UX Workshop</span>
-                    <span class="font-medium xl:ml-auto">23th</span>
-                  </div>
-                  <div class="flex items-center mt-4">
-                    <div class="w-2 h-2 mr-3 rounded-full bg-primary"></div>
-                    <span class="truncate"> VueJs Frontend Development </span>
-                    <span class="font-medium xl:ml-auto">10th</span>
-                  </div>
-                  <div class="flex items-center mt-4">
-                    <div class="w-2 h-2 mr-3 rounded-full bg-warning"></div>
-                    <span class="truncate">Laravel Rest API</span>
-                    <span class="font-medium xl:ml-auto">31th</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-         
         </div>
       </div>
-    </div> -->
+      <div class="grid grid-cols-12 gap-5 mt-3.5">
+        <div
+          class="col-span-12 p-1 md:col-span-6 2xl:col-span-3 box box--stacked"
+        >
+          <div
+            class="-mx-1 overflow-hidden h-[244px] [&_.tns-outer_.tns-nav]:bottom-auto [&_.tns-outer_.tns-nav]:w-auto [&_.tns-outer_.tns-nav]:ml-5 [&_.tns-outer_.tns-nav]:mt-5 [&_.tns-outer_.tns-nav_button]:w-2 [&_.tns-outer_.tns-nav_button]:h-2 [&_.tns-outer_.tns-nav_button.tns-nav-active]:w-5 [&_.tns-outer_.tns-nav_button]:mx-0.5 [&_.tns-outer_.tns-nav_button]:bg-white/40 [&_.tns-outer_.tns-nav_button.tns-nav-active]:bg-white/70"
+          >
+            <TinySlider :options="{ mode: 'gallery', nav: true }">
+              <div class="px-1">
+                <div
+                  class="overflow-hidden relative flex flex-col w-full h-full p-5 rounded-[0.5rem] bg-gradient-to-b from-theme-2/90 to-theme-1/[0.85]"
+                >
+                  <Lucide
+                    icon="Medal"
+                    class="absolute top-0 right-0 w-36 h-36 -mt-5 -mr-5 text-white/20 fill-white/[0.03] transform rotate-[-10deg] stroke-[0.3]"
+                  />
+                  <div class="mt-12 mb-9">
+                    <div class="text-2xl font-medium leading-snug text-white">
+                      New feature
+                      <br />
+                      unlocked!
+                    </div>
+                    <div class="mt-1.5 text-lg text-white/70">
+                      Boost your performance!
+                    </div>
+                  </div>
+                  <a class="flex items-center font-medium text-white" href="">
+                    Upgrade now
+                    <Lucide icon="MoveRight" class="w-4 h-4 ml-1.5" />
+                  </a>
+                </div>
+              </div>
+              <div class="px-1">
+                <div
+                  class="overflow-hidden relative flex flex-col w-full h-full p-5 rounded-[0.5rem] bg-gradient-to-b from-theme-2/90 to-theme-1/90"
+                >
+                  <Lucide
+                    icon="Database"
+                    class="absolute top-0 right-0 w-36 h-36 -mt-5 -mr-5 text-white/20 fill-white/[0.03] transform rotate-[-10deg] stroke-[0.3]"
+                  />
+                  <div class="mt-12 mb-9">
+                    <div class="text-2xl font-medium leading-snug text-white">
+                      Stay ahead
+                      <br />
+                      with upgrades
+                    </div>
+                    <div class="mt-1.5 text-lg text-white/70">
+                      New features and updates!
+                    </div>
+                  </div>
+                  <a class="flex items-center font-medium text-white" href="">
+                    Discover now
+                    <Lucide icon="ArrowRight" class="w-4 h-4 ml-1.5" />
+                  </a>
+                </div>
+              </div>
+              <div class="px-1">
+                <div
+                  class="overflow-hidden relative flex flex-col w-full h-full p-5 rounded-[0.5rem] bg-gradient-to-b from-theme-2/90 to-theme-1/90"
+                >
+                  <Lucide
+                    icon="Gauge"
+                    class="absolute top-0 right-0 w-36 h-36 -mt-5 -mr-5 text-white/20 fill-white/[0.03] transform rotate-[-10deg] stroke-[0.3]"
+                  />
+                  <div class="mt-12 mb-9">
+                    <div class="text-2xl font-medium leading-snug text-white">
+                      Supercharge
+                      <br />
+                      your workflow
+                    </div>
+                    <div class="mt-1.5 text-lg text-white/70">
+                      Boost performance!
+                    </div>
+                  </div>
+                  <a class="flex items-center font-medium text-white" href="">
+                    Get started
+                    <Lucide icon="ArrowRight" class="w-4 h-4 ml-1.5" />
+                  </a>
+                </div>
+              </div>
+            </TinySlider>
+          </div>
+        </div>
+        <div
+          class="flex flex-col col-span-12 p-5 md:col-span-6 2xl:col-span-3 box box--stacked"
+        >
+          <Menu class="absolute top-0 right-0 mt-5 mr-5">
+            <Menu.Button class="w-5 h-5 text-slate-500">
+              <Lucide
+                icon="MoreVertical"
+                class="w-6 h-6 stroke-slate-400/70 fill-slate-400/70"
+              />
+            </Menu.Button>
+            <Menu.Items class="w-40">
+              <Menu.Item>
+                <Lucide icon="Copy" class="w-4 h-4 mr-2" /> Copy Link
+              </Menu.Item>
+              <Menu.Item>
+                <Lucide icon="Trash" class="w-4 h-4 mr-2" />
+                Delete
+              </Menu.Item>
+            </Menu.Items>
+          </Menu>
+          <div class="flex items-center">
+            <div
+              class="flex items-center justify-center w-12 h-12 border rounded-full border-primary/10 bg-primary/10"
+            >
+              <Lucide
+                icon="Database"
+                class="w-6 h-6 text-primary fill-primary/10"
+              />
+            </div>
+            <div class="ml-4">
+              <div class="text-base font-medium">41k Products Sold</div>
+              <div class="text-slate-500 mt-0.5">Across 21 stores</div>
+            </div>
+          </div>
+          <div class="relative mt-5 mb-6 overflow-hidden">
+            <div
+              class="absolute inset-0 h-px my-auto tracking-widest text-slate-400/60 whitespace-nowrap leading-[0] text-xs"
+            >
+              .......................................................................
+            </div>
+            <ReportLineChart
+              class="relative z-10 -ml-1.5"
+              :height="100"
+              :index="2"
+              :borderColor="() => getColor('primary')"
+              :backgroundColor="() => getColor('primary', 0.3)"
+            />
+          </div>
+          <div
+            class="flex flex-wrap items-center justify-center gap-y-3 gap-x-5"
+          >
+            <div class="flex items-center">
+              <div class="w-2 h-2 rounded-full bg-primary/70"></div>
+              <div class="ml-2.5">Products Sold</div>
+            </div>
+            <div class="flex items-center">
+              <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+              <div class="ml-2.5">Store Locations</div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col col-span-12 p-5 md:col-span-6 2xl:col-span-3 box box--stacked"
+        >
+          <Menu class="absolute top-0 right-0 mt-5 mr-5">
+            <Menu.Button class="w-5 h-5 text-slate-500">
+              <Lucide
+                icon="MoreVertical"
+                class="w-6 h-6 stroke-slate-400/70 fill-slate-400/70"
+              />
+            </Menu.Button>
+            <Menu.Items class="w-40">
+              <Menu.Item>
+                <Lucide icon="Copy" class="w-4 h-4 mr-2" /> Copy Link
+              </Menu.Item>
+              <Menu.Item>
+                <Lucide icon="Trash" class="w-4 h-4 mr-2" />
+                Delete
+              </Menu.Item>
+            </Menu.Items>
+          </Menu>
+          <div class="flex items-center">
+            <div
+              class="flex items-center justify-center w-12 h-12 border rounded-full border-success/10 bg-success/10"
+            >
+              <Lucide
+                icon="Files"
+                class="w-6 h-6 text-success fill-success/10"
+              />
+            </div>
+            <div class="ml-4">
+              <div class="text-base font-medium">36k Products Shipped</div>
+              <div class="text-slate-500 mt-0.5">Across 14 warehouses</div>
+            </div>
+          </div>
+          <div class="relative mt-5 mb-6 overflow-hidden">
+            <div
+              class="absolute inset-0 h-px my-auto tracking-widest text-slate-400/60 whitespace-nowrap leading-[0] text-xs"
+            >
+              .......................................................................
+            </div>
+            <ReportLineChart
+              class="relative z-10 -ml-1.5"
+              :height="100"
+              :index="0"
+              :borderColor="() => getColor('success')"
+              :backgroundColor="() => getColor('success', 0.3)"
+            />
+          </div>
+          <div
+            class="flex flex-wrap items-center justify-center gap-y-3 gap-x-5"
+          >
+            <div class="flex items-center">
+              <div class="w-2 h-2 rounded-full bg-success/70"></div>
+              <div class="ml-2.5">Total Shipped</div>
+            </div>
+            <div class="flex items-center">
+              <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+              <div class="ml-2.5">Warehouses</div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex flex-col col-span-12 p-5 md:col-span-6 2xl:col-span-3 box box--stacked"
+        >
+          <Menu class="absolute top-0 right-0 mt-5 mr-5">
+            <Menu.Button class="w-5 h-5 text-slate-500">
+              <Lucide
+                icon="MoreVertical"
+                class="w-6 h-6 stroke-slate-400/70 fill-slate-400/70"
+              />
+            </Menu.Button>
+            <Menu.Items class="w-40">
+              <Menu.Item>
+                <Lucide icon="Copy" class="w-4 h-4 mr-2" /> Copy Link
+              </Menu.Item>
+              <Menu.Item>
+                <Lucide icon="Trash" class="w-4 h-4 mr-2" />
+                Delete
+              </Menu.Item>
+            </Menu.Items>
+          </Menu>
+          <div class="flex items-center">
+            <div
+              class="flex items-center justify-center w-12 h-12 border rounded-full border-primary/10 bg-primary/10"
+            >
+              <Lucide icon="Zap" class="w-6 h-6 text-primary fill-primary/10" />
+            </div>
+            <div class="ml-4">
+              <div class="text-base font-medium">3.7k Orders Processed</div>
+              <div class="text-slate-500 mt-0.5">Across 9 regions</div>
+            </div>
+          </div>
+          <div class="relative mt-5 mb-6">
+            <ReportDonutChart3 class="relative z-10" :height="100" />
+          </div>
+          <div
+            class="flex flex-wrap items-center justify-center gap-y-3 gap-x-5"
+          >
+            <div class="flex items-center">
+              <div class="w-2 h-2 rounded-full bg-primary/70"></div>
+              <div class="ml-2.5">Order Volume</div>
+            </div>
+            <div class="flex items-center">
+              <div class="w-2 h-2 rounded-full bg-danger/70"></div>
+              <div class="ml-2.5">Coverage Area</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-span-12">
+      <div class="flex flex-col md:h-10 gap-y-3 md:items-center md:flex-row">
+        <div class="text-base font-medium">Performance Insights</div>
+        <div class="flex gap-x-3 gap-y-2 md:ml-auto">
+          <Button
+            data-carousel="important-notes"
+            data-target="prev"
+            class="box"
+            @click="prevImportantNotes"
+          >
+            <div class="flex items-center justify-center w-3.5 h-5">
+              <Lucide icon="ChevronLeft" class="w-4 h-4" />
+            </div>
+          </Button>
+          <Button
+            data-carousel="important-notes"
+            data-target="next"
+            class="box"
+            @click="nextImportantNotes"
+          >
+            <div class="flex items-center justify-center w-3.5 h-5">
+              <Lucide icon="ChevronRight" class="w-4 h-4" />
+            </div>
+          </Button>
+        </div>
+      </div>
+      <div class="mt-3.5 -mx-2.5">
+        <TinySlider
+          refKey="sliderRef"
+          :options="{
+            autoplay: false,
+            controls: false,
+            items: 1,
+            responsive: {
+              640: { items: 2 },
+              768: { items: 3 },
+              1024: { items: 4 },
+              1320: {
+                items: 5,
+              },
+            },
+          }"
+        >
+          <template
+            v-for="(faker, fakerKey) in eCommerce.fakePerformanceInsights()"
+            :key="fakerKey"
+          >
+            <div class="px-2.5 pb-3">
+              <div class="relative p-5 box box--stacked">
+                <div class="flex items-center">
+                  <div
+                    :class="[
+                      'group flex items-center justify-center w-10 h-10 border rounded-full',
+                      '[&.primary]:border-primary/10 [&.primary]:bg-primary/10',
+                      '[&.success]:border-success/10 [&.success]:bg-success/10',
+                      ['primary', 'success'][_.random(0, 1)],
+                    ]"
+                  >
+                    <Lucide
+                      :icon="faker.icon"
+                      :class="[
+                        'w-5 h-5',
+                        'group-[.primary]:text-primary group-[.primary]:fill-primary/10',
+                        'group-[.success]:text-success group-[.success]:fill-success/10',
+                      ]"
+                    />
+                  </div>
+                  <div class="flex ml-auto">
+                    <div class="w-8 h-8 image-fit zoom-in">
+                      <img
+                        alt="Tailwise - Admin Dashboard Template"
+                        class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                        :src="faker.images[0].path"
+                      />
+                    </div>
+                    <div class="w-8 h-8 -ml-3 image-fit zoom-in">
+                      <img
+                        alt="Tailwise - Admin Dashboard Template"
+                        class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                        :src="faker.images[1].path"
+                      />
+                    </div>
+                    <div class="w-8 h-8 -ml-3 image-fit zoom-in">
+                      <img
+                        alt="Tailwise - Admin Dashboard Template"
+                        class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                        :src="faker.images[2].path"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="mt-11">
+                  <div class="text-base font-medium">{{ faker.title }}</div>
+                  <div class="text-slate-500 mt-0.5">
+                    {{ faker.subtitle }}
+                  </div>
+                </div>
+                <a
+                  class="flex items-center pt-4 mt-4 font-medium border-t border-dashed text-primary"
+                  href=""
+                >
+                  {{ faker.link }}
+                  <Lucide icon="ArrowRight" class="w-4 h-4 ml-1.5" />
+                </a>
+              </div>
+            </div>
+          </template>
+        </TinySlider>
+      </div>
+    </div>
+    <div class="col-span-12">
+      <div class="flex flex-col md:h-10 gap-y-3 md:items-center md:flex-row">
+        <div class="text-base font-medium">Recent Orders</div>
+        <div class="flex flex-col sm:flex-row gap-x-3 gap-y-2 md:ml-auto">
+          <div class="relative">
+            <Lucide
+              icon="CalendarCheck2"
+              class="absolute inset-y-0 left-0 z-10 w-4 h-4 my-auto ml-3 stroke-[1.3]"
+            />
+            <FormSelect class="sm:w-44 rounded-[0.5rem] pl-9 dark:!box">
+              <option value="custom-date">Custom Date</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </FormSelect>
+          </div>
+          <div class="relative">
+            <Lucide
+              icon="Calendar"
+              class="absolute inset-y-0 left-0 z-10 w-4 h-4 my-auto ml-3 stroke-[1.3]"
+            />
+            <Litepicker
+              v-model="generalReportFilter"
+              :options="{
+                autoApply: false,
+                singleMode: false,
+                numberOfColumns: 2,
+                numberOfMonths: 2,
+                showWeekNumbers: true,
+                dropdowns: {
+                  minYear: 1990,
+                  maxYear: null,
+                  months: true,
+                  years: true,
+                },
+              }"
+              class="pl-9 sm:w-64 rounded-[0.5rem] dark:box"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="mt-2 overflow-auto lg:overflow-visible">
+        <Table class="border-spacing-y-[10px] border-separate">
+          <Table.Tbody>
+            <template
+              v-for="(faker, fakerKey) in _.take(
+                transactions.fakeTransactions(),
+                5
+              )"
+              key="fakerKey"
+            >
+              <Table.Tr>
+                <Table.Td
+                  class="box shadow-[5px_3px_5px_#00000005] first:border-l last:border-r first:rounded-l-[0.6rem] last:rounded-r-[0.6rem] rounded-l-none rounded-r-none border-x-0 dark:bg-darkmode-600"
+                >
+                  <div class="flex items-center">
+                    <Lucide
+                      :icon="faker.category.icon"
+                      class="w-6 h-6 text-theme-1 fill-primary/10 stroke-[0.8]"
+                    />
+                    <div class="ml-3.5">
+                      <a href="" class="font-medium whitespace-nowrap">
+                        {{ faker.orderId }}
+                      </a>
+                      <div
+                        class="mt-1 text-xs text-slate-500 whitespace-nowrap"
+                      >
+                        {{ faker.category.name }}
+                      </div>
+                    </div>
+                  </div>
+                </Table.Td>
+                <Table.Td
+                  class="w-60 box shadow-[5px_3px_5px_#00000005] first:border-l last:border-r first:rounded-l-[0.6rem] last:rounded-r-[0.6rem] rounded-l-none rounded-r-none border-x-0 dark:bg-darkmode-600"
+                >
+                  <div class="mb-1 text-xs text-slate-500 whitespace-nowrap">
+                    Customer Name
+                  </div>
+                  <a href="" class="flex items-center text-primary">
+                    <Lucide
+                      icon="ExternalLink"
+                      class="w-3.5 h-3.5 stroke-[1.7]"
+                    />
+                    <div class="ml-1.5 whitespace-nowrap">
+                      {{ faker.user.name }}
+                    </div>
+                  </a>
+                </Table.Td>
+                <Table.Td
+                  class="w-44 box shadow-[5px_3px_5px_#00000005] first:border-l last:border-r first:rounded-l-[0.6rem] last:rounded-r-[0.6rem] rounded-l-none rounded-r-none border-x-0 dark:bg-darkmode-600"
+                >
+                  <div class="mb-1.5 text-xs text-slate-500 whitespace-nowrap">
+                    Purchased Items
+                  </div>
+                  <div class="flex mb-1">
+                    <div class="w-5 h-5 image-fit zoom-in">
+                      <Tippy
+                        as="img"
+                        alt="Tailwise - Admin Dashboard Template"
+                        class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                        :src="faker.products[0].images[0].path"
+                        :content="faker.products[0].name"
+                      />
+                    </div>
+                    <div class="w-5 h-5 -ml-1.5 image-fit zoom-in">
+                      <Tippy
+                        as="img"
+                        alt="Tailwise - Admin Dashboard Template"
+                        class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                        :src="faker.products[1].images[0].path"
+                        :content="faker.products[1].name"
+                      />
+                    </div>
+                    <div class="w-5 h-5 -ml-1.5 image-fit zoom-in">
+                      <Tippy
+                        as="img"
+                        alt="Tailwise - Admin Dashboard Template"
+                        class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
+                        :src="faker.products[2].images[0].path"
+                        :content="faker.products[2].name"
+                      />
+                    </div>
+                  </div>
+                </Table.Td>
+                <Table.Td
+                  class="w-44 box shadow-[5px_3px_5px_#00000005] first:border-l last:border-r first:rounded-l-[0.6rem] last:rounded-r-[0.6rem] rounded-l-none rounded-r-none border-x-0 dark:bg-darkmode-600"
+                >
+                  <div class="mb-1 text-xs text-slate-500 whitespace-nowrap">
+                    Status
+                  </div>
+                  <div
+                    :class="['flex items-center', faker.orderStatus.textColor]"
+                  >
+                    <Lucide
+                      :icon="faker.orderStatus.icon"
+                      class="w-3.5 h-3.5 stroke-[1.7]"
+                    />
+                    <div class="ml-1.5 whitespace-nowrap">
+                      {{ faker.orderStatus.name }}
+                    </div>
+                  </div>
+                </Table.Td>
+                <Table.Td
+                  class="w-44 box shadow-[5px_3px_5px_#00000005] first:border-l last:border-r first:rounded-l-[0.6rem] last:rounded-r-[0.6rem] rounded-l-none rounded-r-none border-x-0 dark:bg-darkmode-600"
+                >
+                  <div class="mb-1 text-xs text-slate-500 whitespace-nowrap">
+                    Date
+                  </div>
+                  <div class="whitespace-nowrap">{{ faker.orderDate }}</div>
+                </Table.Td>
+                <Table.Td
+                  class="w-20 relative py-0 box shadow-[5px_3px_5px_#00000005] first:border-l last:border-r first:rounded-l-[0.6rem] last:rounded-r-[0.6rem] rounded-l-none rounded-r-none border-x-0 dark:bg-darkmode-600"
+                >
+                  <div class="flex items-center justify-center">
+                    <Menu class="h-5">
+                      <Menu.Button class="w-5 h-5 text-slate-500">
+                        <Lucide
+                          icon="MoreVertical"
+                          class="w-5 h-5 stroke-slate-400/70 fill-slate-400/70"
+                        />
+                      </Menu.Button>
+                      <Menu.Items class="w-40">
+                        <Menu.Item>
+                          <Lucide icon="WalletCards" class="w-4 h-4 mr-2" />
+                          View Details
+                        </Menu.Item>
+                        <Menu.Item>
+                          <Lucide icon="FilePenLine" class="w-4 h-4 mr-2" />
+                          Edit Order
+                        </Menu.Item>
+                        <Menu.Item>
+                          <Lucide icon="Printer" class="w-4 h-4 mr-2" />
+                          Print Invoice
+                        </Menu.Item>
+                      </Menu.Items>
+                    </Menu>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            </template>
+          </Table.Tbody>
+        </Table>
+      </div>
+      <div
+        class="flex flex-col-reverse flex-wrap items-center mt-3 flex-reverse gap-y-2 sm:flex-row"
+      >
+        <Pagination class="flex-1 w-full mr-auto sm:w-auto">
+          <Pagination.Link>
+            <Lucide icon="ChevronsLeft" class="w-4 h-4" />
+          </Pagination.Link>
+          <Pagination.Link>
+            <Lucide icon="ChevronLeft" class="w-4 h-4" />
+          </Pagination.Link>
+          <Pagination.Link>...</Pagination.Link>
+          <Pagination.Link>1</Pagination.Link>
+          <Pagination.Link active>2</Pagination.Link>
+          <Pagination.Link>3</Pagination.Link>
+          <Pagination.Link>...</Pagination.Link>
+          <Pagination.Link>
+            <Lucide icon="ChevronRight" class="w-4 h-4" />
+          </Pagination.Link>
+          <Pagination.Link>
+            <Lucide icon="ChevronsRight" class="w-4 h-4" />
+          </Pagination.Link>
+        </Pagination>
+        <FormSelect class="sm:w-20 rounded-[0.5rem] dark:!box">
+          <option>10</option>
+          <option>25</option>
+          <option>35</option>
+          <option>50</option>
+        </FormSelect>
+      </div>
+    </div>
   </div>
-</template>
-
 </template>

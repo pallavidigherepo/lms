@@ -22,7 +22,7 @@ import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useVuelidate } from "@vuelidate/core";
 import { required, email, helpers, minLength, numeric } from "@vuelidate/validators";
 import store from "@/stores/index.js";
-import { useUserStore } from "@/stores/user/user";
+import { useUserStore } from "@/stores/modules/user";
 import { useRouter, useRoute } from "vue-router";
 import { ref, reactive, computed, onMounted, provide } from "vue";
 import Loading from "@/custom_components/Loading.vue";
@@ -47,54 +47,9 @@ onMounted(() => {
 
 // Now we must get editing details for the selected item
 // const { t } = useI18n();
-const user = reactive({
-  id: null,
-  name: "",
-  email: "",
-  alt_email: "",
-  mobile: "",
-  alt_mobile: "",
-  address: "",
-  alt_address: "",
-  gender: "",
-  qualification: "",
-  avatar: null,
-  role: "",
-  designation: "",
-  dob: "",
-});
+const user = userStore.user;
 
-const rules = computed(() => {
-  return {
-    name: {
-      required: helpers.withMessage("Please enter name of user.", required),
-    },
-    email: {
-      required: helpers.withMessage("Please enter email address.", required),
-      email: helpers.withMessage("Please enter valid email address", email),
-    },
-    mobile: {
-      required: helpers.withMessage("Please enter mobile number.", required),
-      minLength: helpers.withMessage("Please enter valid mobile number", minLength(10)),
-      numeric: helpers.withMessage("Please enter valid mobile number", numeric),
-    },
-    designation: {
-      required: helpers.withMessage("Please select role of user.", required),
-    },
-    address: {
-      required: helpers.withMessage("Please enter address.", required),
-    },
-    dob: {
-      required: helpers.withMessage("Please enter date of birth.", required),
-    },
-    gender: {
-      required: helpers.withMessage("Please select gender.", required),
-    },    
-    qualification: {
-      required: helpers.withMessage("Please enter qualification.", required),
-    },
-  };
-});
+const rules = userStore.rules;
 
 const v$ = useVuelidate(rules, user);
 
@@ -104,12 +59,12 @@ async function submitForm() {
 
   if (!v$.value.$error) {
     loading.value = true;
-    await store
-      .dispatch("users/save", user)
+    await userStore
+      .store(user)
       .then(() => {
         loading.value = false;
         submitted.value = false;
-        router.push({ name: "Users" });
+        // router.push({ name: "Users" });
       })
       .catch((err: { response: { data: { message: string; }; }; }) => {
         loading.value = false;
@@ -241,12 +196,18 @@ onMounted(() => {
                       <FormLabel for="form-role" class="form-label">Role
                       </FormLabel>
                       <div class="mt-2">
-                        <TomSelect id="form-type" v-model="user.designation" placeholder="Select Type" :options="{
-                          allowEmptyOption: false,
-                          create: false,
-                          placeholder: 'Select Role',
-                          autocomplete: 'off',
-                        }">
+                        <TomSelect id="form-type" 
+                                  v-model="user.designation" 
+                                  placeholder="Select Type"
+                                  :class="{
+                                    'border-danger': submitted && v$.designation.$errors.length,
+                                  }" 
+                                  :options="{
+                                    allowEmptyOption: false,
+                                    create: false,
+                                    placeholder: 'Select Role',
+                                    autocomplete: 'off',
+                                  }">
                           <option>Select Role</option>
                           <option :value="index" v-for="(role, index) in roles" :key="index">
                             {{ role }}
@@ -276,10 +237,10 @@ onMounted(() => {
                       <FormLabel for="form-email" class="form-label">Alternate Email</FormLabel>
 
                       <FormInput id="form-email" type="text" class="form-control" placeholder="Enter email"
-                        v-model.trim="user.email" :class="{
-                          'border-danger': submitted && v$.email.$errors.length,
+                        v-model.trim="user.alt_email" :class="{
+                          'border-danger': submitted && v$.alt_email.$errors.length,
                         }" />
-                      <div class="text-danger mt-2" v-for="(error, index) of v$.email.$errors" :key="index">
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.alt_email.$errors" :key="index">
                         <div class="error-msg">{{ error.$message }}</div>
                       </div>
                       <!--<span v-if="submitted && v$.users.$error" class="text-theme-24 mt-2">
@@ -304,10 +265,10 @@ onMounted(() => {
                       <FormLabel for="form-mobile-number" class="form-label">Alternate Mobile Number</FormLabel>
 
                       <FormInput id="form-mobile-number" type="text" class="form-control"
-                        placeholder="Enter mobile number" v-model.trim="user.mobile" :class="{
-                          'border-danger': submitted && v$.mobile.$errors.length,
+                        placeholder="Enter mobile number" v-model.trim="user.alt_mobile" :class="{
+                          'border-danger': submitted && v$.alt_mobile.$errors.length,
                         }" />
-                      <div class="text-danger mt-2" v-for="(error, index) of v$.mobile.$errors" :key="index">
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.alt_mobile.$errors" :key="index">
                         <div class="error-msg">{{ error.$message }}</div>
                       </div>
                       <!--<span v-if="submitted && v$.users.$error" class="text-theme-24 mt-2">
@@ -338,7 +299,7 @@ onMounted(() => {
                       </div>
                     </div>
                     <div class="mt-3">
-                      <FormLabel for="form-mobile-number" class="form-label">Upload Image</FormLabel>
+                      <FormLabel for="form-mobile-number" class="form-label">Avatar Upload Image</FormLabel>
 
                       <Dropzone refKey="dropzoneSingleRef" :options="{
                                     url: 'https://httpbin.org/post',
@@ -346,7 +307,11 @@ onMounted(() => {
                                     maxFilesize: 0.5,
                                     maxFiles: 1,
                                     headers: { 'My-Awesome-Header': 'header value' },
-                                  }" class="dropzone">
+                                  }" class="dropzone"
+                                  v-model="user.avatar"
+                                  :class="{
+                                    'border-danger': submitted && v$.avatar.$errors.length,
+                                  }">
                         <div class="text-lg font-medium">
                             Drop files here to upload.
                         </div>
@@ -360,12 +325,19 @@ onMounted(() => {
                       <FormLabel for="form-role" class="form-label">Gender
                       </FormLabel>
                       <div class="mt-2">
-                        <TomSelect id="form-type" v-model="user.gender" placeholder="Select Gender" :options="{
-                          allowEmptyOption: false,
-                          create: false,
-                          placeholder: 'Select Gender',
-                          autocomplete: 'off',
-                        }">
+                        <TomSelect id="form-type" 
+                                  v-model="user.gender" 
+                                  placeholder="Select Gender" 
+                                  :options="{
+                                    allowEmptyOption: false,
+                                    create: false,
+                                    placeholder: 'Select Gender',
+                                    autocomplete: 'off',
+                                    
+                                  }"
+                                  :class="{
+                                    'border-danger': submitted && v$.gender.$errors.length,
+                                  }">
                           <option>Select Gender</option>
                           <option value="male" :key="'male'">Male</option>
                           <option value="female" :key="'female'">Female</option>
@@ -398,6 +370,10 @@ onMounted(() => {
               
             </div>
             <div class="flex flex-col justify-end gap-3 mt-5 md:flex-row">
+              <Button variant="primary" class="w-full md:w-56 py-2.5 rounded-[0.5rem]" type="submit">
+                <Lucide icon="PenLine" class="stroke-[1.3] w-4 h-4 mr-2" />
+                Save
+              </Button>
               <Button variant="outline-secondary"
                 class="w-full border-slate-300/80 bg-white/80 md:w-56 py-2.5 rounded-[0.5rem] dark:bg-darkmode-400"
                 @click="router.push('/users')">
@@ -411,10 +387,7 @@ onMounted(() => {
               <Lucide icon="PenLine" class="stroke-[1.3] w-4 h-4 mr-2" />
               Save & Add New
             </Button> -->
-              <Button variant="primary" class="w-full md:w-56 py-2.5 rounded-[0.5rem]" type="submit">
-                <Lucide icon="PenLine" class="stroke-[1.3] w-4 h-4 mr-2" />
-                Save
-              </Button>
+              
             </div>
           </form>
 

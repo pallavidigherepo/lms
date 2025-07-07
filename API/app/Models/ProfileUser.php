@@ -40,6 +40,7 @@ class ProfileUser extends Model
         'qualification',
         'avatar',
         'designation',
+        'date_of_joining',
     ];
 
     protected $searchable = [
@@ -53,6 +54,7 @@ class ProfileUser extends Model
         'qualification',
         'avatar',
         'designation',
+        'date_of_joining',
     ];
 
     protected $sortable = [
