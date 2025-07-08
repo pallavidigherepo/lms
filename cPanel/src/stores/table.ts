@@ -32,12 +32,13 @@ interface Pagination {
 export const useTableStore = defineStore('table', () => {
   // --- State ---
   const route = useRoute()
+  const listingView = ref<string[]>([])
   const subPages = ref<string[]>([])
 
   const data = ref<any[]>([])
   const search = ref('')
   const sort = ref<SortOption>({ key: '', order: 'desc' })
-  const pagination = ref<Pagination>({ page: 1, perPage: 25, total: 0 })
+  const pagination = ref<Pagination>({ page: 1, perPage: 10, total: 0 })
   const activeFilters = ref<Record<string, string>>({})
   const selectedRows = ref<number[]>([])
   const checkAll = ref(false)
@@ -46,10 +47,8 @@ export const useTableStore = defineStore('table', () => {
 
   const columns = ref<Column[]>([])
   const filters = ref<FilterOption[]>([])
-
-  const totalPages = computed(() =>
-    Math.ceil(pagination.value.total / pagination.value.perPage)
-  )
+//console.log(pagination.value, pagination.value.perPage)
+  const totalPages = pagination.value.total
 
   // --- Setup ---
   const setupTable = ({
@@ -77,11 +76,15 @@ export const useTableStore = defineStore('table', () => {
     subPages.value = pages
   }
   
+  const setListingView = (list: string[]) => {
+    listingView.value = list
+  }
   // --- Actions ---
   const fetchData = async () => {
     const params: Record<string, any> = {
       page: pagination.value.page,
       per_page: pagination.value.perPage,
+      total: pagination.value.total,
       search: search.value,
       sort_by: sort.value.key,
       sort_order: sort.value.order,
@@ -90,7 +93,7 @@ export const useTableStore = defineStore('table', () => {
     if (apiUrl.value) {
       const response = await axiosClient.get(apiUrl.value, { params })
       data.value = response.data.data
-      pagination.value.total = response.data.total
+      pagination.value.total = response.data.meta.last_page
       syncCheckState()
       listing.value = !subPages.value.includes(String(route.name))
     }
@@ -129,7 +132,7 @@ export const useTableStore = defineStore('table', () => {
   }
 
   const nextPage = () => {
-    if (pagination.value.page < totalPages.value) {
+    if (pagination.value.page < pagination.value.total) {
       pagination.value.page++
       fetchData()
     }
@@ -193,6 +196,10 @@ export const useTableStore = defineStore('table', () => {
 
   const view = (row: any) => alert(`Viewing: ${JSON.stringify(row)}`)
   const edit = (row: any) => alert(`Editing: ${JSON.stringify(row)}`)
+  /**
+   * Deletes a user row from the table.
+   * @param {object} row - The row to be deleted. It should have `name` and `id` properties.
+   */
   const handleDelete = (row: any) => {
     if (confirm(`Are you sure you want to delete user ${row.name}?`)) {
       alert(`Deleted user: ${row.id}`)
@@ -209,14 +216,15 @@ export const useTableStore = defineStore('table', () => {
     },
     { immediate: true }
   )
-
   watch(() => route.name, newVal => {
-    if (newVal === 'Users') {
+    if (listingView.value.includes(String(newVal))) {
       listing.value = true
     }
   })
 
   watch(() => apiUrl.value, fetchData, { immediate: true })
+
+  watch(() => selectedRows.value, syncCheckState, { immediate: true })
 
   return {
     // State
@@ -236,7 +244,8 @@ export const useTableStore = defineStore('table', () => {
     // Setup
     setupTable,
     setSubPages,
-
+    setListingView,
+    
     // Actions
     fetchData,
     sortBy,

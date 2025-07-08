@@ -29,7 +29,7 @@ tableStore.setupTable({
     ],
 })
 tableStore.setSubPages(['CreateUser', 'ViewUser', 'EditUser'])
-
+tableStore.setListingView(['Users'])
 const {
     data,
     search,
@@ -268,7 +268,7 @@ const handleDelete: any = (row: any) => tableStore.handleDelete(row)
                                             </Table.Td>
                                             <Table.Td class="py-4 border-dashed w-80 dark:bg-darkmode-600">
                                                 <div class="flex items-center">
-                                                    <div class="w-9 h-9 image-fit zoom-in">
+                                                    <div class="w-12 h-12 image-fit zoom-in">
                                                         <Tippy as="img" :alt="row.name"
                                                             class="rounded-full shadow-[0px_0px_0px_2px_#fff,_1px_1px_5px_rgba(0,0,0,0.32)] dark:shadow-[0px_0px_0px_2px_#3f4865,_1px_1px_5px_rgba(0,0,0,0.32)]"
                                                             :src="row.avatar" :content="row.name" />
@@ -359,11 +359,11 @@ const handleDelete: any = (row: any) => tableStore.handleDelete(row)
                                 <Pagination.Link @click="prevPage" :disabled="pagination.page === 1">
                                     <Lucide icon="ChevronLeft" class="w-4 h-4" />
                                 </Pagination.Link>
-                                <Pagination.Link>Page {{ pagination.page }} of {{ totalPages }}</Pagination.Link>
-                                <Pagination.Link @click="nextPage" :disabled="pagination.page === totalPages">
+                                <Pagination.Link>Page {{ pagination.page }} of {{ pagination.total }}</Pagination.Link>
+                                <Pagination.Link @click="nextPage" :disabled="pagination.page === pagination.total">
                                     <Lucide icon="ChevronRight" class="w-4 h-4" />
                                 </Pagination.Link>
-                                <Pagination.Link @click="nextPage" :disabled="pagination.page === totalPages">
+                                <Pagination.Link @click="nextPage" :disabled="pagination.page === pagination.total">
                                     <Lucide icon="ChevronsRight" class="w-4 h-4" />
                                 </Pagination.Link>
                             </Pagination>
