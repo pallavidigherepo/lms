@@ -34,17 +34,7 @@ class UserController extends Controller
      */
     public function index(Request $request): ResourceCollection
     {
-        $field = $request->input('sort_field') ?? 'id';
-        $order = $request->input('sort_order') ?? 'desc';
-        $perPage = $request->input('per_page') ?? 10;
-
-        return UserResource::collection(
-            User::when(request('search'), function ($query) {
-                $query->where('name', 'like', '%' . request('search') . '%');
-                $query->orWhere('email', 'like', '%' . request('search') . '%');
-                //$query->orWhere('mobile_no', 'like', '%' . request('search') . '%');
-            })->orderBy($field, $order)->paginate($perPage)
-        );
+        return $this->userService->all($request);
     }
 
     /**
@@ -74,7 +64,7 @@ class UserController extends Controller
     }
 
 
-    public function edit(User $user) 
+    public function edit(User $user)
     {
         return response()->json(UserResource::make(User::findOrFail($user->id)), 200);
     }
@@ -100,7 +90,7 @@ class UserController extends Controller
     public function update(UserRequest $request, User $user)
     {
         if ($request->validated()) {
-            
+
             $user->name = $request->name;
             $user->email = $request->email;
 
@@ -126,7 +116,7 @@ class UserController extends Controller
             ];
         }
         return response()->json($response, 200);
-        
+
     }
 
     /**

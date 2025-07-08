@@ -32,6 +32,7 @@ class StoreProfileUserRequest extends FormRequest
             'avatar' => 'nullable|image|max:2048', // max 2MB
             'designation' => 'required|string',
             'date_of_joining' => 'required|date',
+            'dob' => 'nullable|date',
         ];
     }
 }

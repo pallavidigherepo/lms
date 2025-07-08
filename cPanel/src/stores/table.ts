@@ -36,8 +36,8 @@ export const useTableStore = defineStore('table', () => {
 
   const data = ref<any[]>([])
   const search = ref('')
-  const sort = ref<SortOption>({ key: '', order: 'asc' })
-  const pagination = ref<Pagination>({ page: 1, perPage: 10, total: 0 })
+  const sort = ref<SortOption>({ key: '', order: 'desc' })
+  const pagination = ref<Pagination>({ page: 1, perPage: 25, total: 0 })
   const activeFilters = ref<Record<string, string>>({})
   const selectedRows = ref<number[]>([])
   const checkAll = ref(false)

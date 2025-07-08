@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\URL;
 
@@ -26,7 +27,7 @@ class UserResource extends JsonResource
             'gender_name' => ucfirst($this->profile_user->gender) ?? null,
             'qualification' => $this->profile_user->qualification ?? null,
             'date_of_joining' => $this->profile_user->date_of_joining ?? null,
-            'avatar' => file_exists($this->profile_user->avatar) ? URL::to($this->profile_user->avatar) : URL::to("storage/images/no-image.jpg"),
+            'avatar' => $this->profile_user->avatar ? URL::to(Storage::url($this->profile_user->avatar)) : URL::to("storage/images/no-image.jpg"),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

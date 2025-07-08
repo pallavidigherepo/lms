@@ -24,7 +24,7 @@ class UserRepository implements UserRepositoryInterface
     {
         $field = $request->input('sort_field') ?? 'id';
         $order = $request->input('sort_order') ?? 'desc';
-        $perPage = $request->input('per_page') ?? 10;
+        $perPage = $request->input('per_page') ?? 25;
 
         return UserResource::collection(
             User::when(request('search'), function ($query) {
@@ -73,13 +73,14 @@ class UserRepository implements UserRepositoryInterface
             'alt_address' => $request->alt_address,
             'gender' => $request->gender,
             'qualification' => $request->qualification,
+            'dob' => $request->dob,
             'date_of_joining' => $request->date_of_joining,
-            'designation' => $request->designation,
+            'designation' => $request->role,
             'avatar' => $imagePath,
         ]);
         $user->profile_user()->save($profile);
 
-        $user->assignRole($request->designation);
+        $user->assignRole($request->role);
         $response = [
             'success' => true,
             'message' => 'User created successfully.',

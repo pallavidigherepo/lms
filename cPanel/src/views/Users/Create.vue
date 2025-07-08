@@ -20,8 +20,6 @@ import Button from "@/components/Base/Button";
 import Alert from "@/components/Base/Alert";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { useVuelidate } from "@vuelidate/core";
-import { required, email, helpers, minLength, numeric } from "@vuelidate/validators";
-import store from "@/stores/index.js";
 import { useUserStore } from "@/stores/modules/user";
 import { useRouter, useRoute } from "vue-router";
 import { ref, reactive, computed, onMounted, provide } from "vue";
@@ -53,18 +51,42 @@ const rules = userStore.rules;
 
 const v$ = useVuelidate(rules, user);
 
+function setFormData() {
+  let formData = new FormData();
+
+  formData.append("name", user.name ?? "");
+  formData.append("email", user.email ?? "");
+  formData.append("alt_email", user.alt_email ?? "");
+  formData.append("mobile", user.mobile ?? "");
+  formData.append("alt_mobile", user.alt_mobile ?? "");
+  formData.append("address", user.address ?? "");
+  formData.append("alt_address", user.alt_address ?? "");
+  formData.append("gender", user.gender ?? "");
+  formData.append("qualification", user.qualification ?? "");
+  formData.append("avatar", user.avatar ?? "");
+  formData.append("role", user.role ?? "");
+  formData.append("designation", user.designation ?? "");
+  formData.append("dob", user.dob ?? "");
+  formData.append("date_of_joining", user.date_of_joining ?? "");
+
+  return formData;
+}
+
 async function submitForm() {
   submitted.value = true;
   v$.value.$validate(); // checks all inputs
 
   if (!v$.value.$error) {
     loading.value = true;
+
     await userStore
-      .store(user)
+      .store(setFormData())
       .then(() => {
+        isErrored.value = false;
+        message.value = "User created successfully.";
         loading.value = false;
         submitted.value = false;
-        // router.push({ name: "Users" });
+        router.push({ name: "Users" });
       })
       .catch((err: { response: { data: { message: string; }; }; }) => {
         loading.value = false;
@@ -127,6 +149,33 @@ onMounted(() => {
     });
   }
 });
+
+const previewUrl = ref<string | null>(null);
+/**
+ * Handles a file input event.
+ *
+ * If the argument is a File object, it directly assigns to the user's avatar.
+ * If the argument is an Event object, it assigns the first file in the input
+ * element's files list to the user's avatar.
+ *
+ * If the file is assigned, it creates a data URL for the file and assigns it
+ * to the previewUrl ref.
+ * @param {Event | File} e - The file input event or File object
+ */
+function handleFile(e: Event | File) {
+  const file = e instanceof File ? e : (e.target as HTMLInputElement)?.files?.[0];
+  
+  if (file) {
+    //user.avatar = file;
+
+    // Create a preview URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewUrl.value = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+}
 </script>
 
 <template>
@@ -152,7 +201,7 @@ onMounted(() => {
       </div>
       <div class="mt-3.5 grid grid-cols-12 xl:grid-cols-10 gap-y-7 lg:gap-y-10 gap-x-6" v-if="!loading">
         <div class="relative flex flex-col col-span-12 lg:col-span-9 xl:col-span-8 gap-y-7">
-          <form @submit.prevent="submitForm" class="validate-form">
+          <form @submit.prevent="submitForm" class="validate-form" enctype="multipart/form-data">
             <div class="flex flex-col p-5 box box--stacked" id="basic-information">
               <div
                 class="flex items-center pb-5 text-[0.94rem] font-medium border-b border-slate-200/60 dark:border-darkmode-400">
@@ -197,10 +246,10 @@ onMounted(() => {
                       </FormLabel>
                       <div class="mt-2">
                         <TomSelect id="form-type" 
-                                  v-model="user.designation" 
+                                  v-model="user.role" 
                                   placeholder="Select Type"
                                   :class="{
-                                    'border-danger': submitted && v$.designation.$errors.length,
+                                    'border-danger': submitted && v$.role.$errors.length,
                                   }" 
                                   :options="{
                                     allowEmptyOption: false,
@@ -209,12 +258,12 @@ onMounted(() => {
                                     autocomplete: 'off',
                                   }">
                           <option>Select Role</option>
-                          <option :value="index" v-for="(role, index) in roles" :key="index">
+                          <option :value="role" v-for="(role, index) in roles" :key="index">
                             {{ role }}
                           </option>
                         </TomSelect>
                       </div>
-                      <div class="text-danger mt-2" v-for="(error, index) of v$.designation.$errors" :key="index">
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.role.$errors" :key="index">
                         <div class="error-msg">{{ error.$message }}</div>
                       </div>
                     </div>
@@ -299,27 +348,35 @@ onMounted(() => {
                       </div>
                     </div>
                     <div class="mt-3">
-                      <FormLabel for="form-mobile-number" class="form-label">Avatar Upload Image</FormLabel>
+                      <FormLabel for="form-doj" class="form-label">Date of Joining</FormLabel>
 
-                      <Dropzone refKey="dropzoneSingleRef" :options="{
-                                    url: 'https://httpbin.org/post',
-                                    thumbnailWidth: 150,
-                                    maxFilesize: 0.5,
-                                    maxFiles: 1,
-                                    headers: { 'My-Awesome-Header': 'header value' },
-                                  }" class="dropzone"
-                                  v-model="user.avatar"
-                                  :class="{
-                                    'border-danger': submitted && v$.avatar.$errors.length,
-                                  }">
-                        <div class="text-lg font-medium">
-                            Drop files here to upload.
+                      <FormInput id="form-doj" type="date" class="form-control"
+                        placeholder="Enter Date of Joining" v-model.trim="user.date_of_joining" :class="{
+                          'border-danger': submitted && v$.date_of_joining.$errors.length,
+                        }" />
+                      <div class="text-danger mt-2" v-for="(error, index) of v$.date_of_joining.$errors" :key="index">
+                        <div class="error-msg">{{ error.$message }}</div>
+                      </div>
+                    </div>
+                    <div class="mt-3">
+                      <FormLabel for="form-mobile-number" class="form-label">Avatar Upload Image</FormLabel>
+                      <FormInput id="form-avatar" 
+                                type="file" 
+                                class="form-control"
+                                placeholder="Enter avatar image URL" 
+                                name="avatar" 
+                                @change="($event: any) => {
+                                    user.avatar = $event.target.files[0];
+                                    handleFile
+                                }"
+                                accept="image/*"
+                                :class="{
+                                  'border-danger': submitted && v$.avatar.$errors.length,
+                                }" />
+                        <div class="text-danger mt-2" v-for="(error, index) of v$.avatar.$errors" :key="index">
+                          <div class="error-msg">{{ error.$message }}</div>
                         </div>
-                        <div class="text-gray-600">
-                            Selected file must be an image. Allowed file types are: 
-                            <span class="font-medium">jpeg, png, jpg</span>.
-                        </div>
-                    </Dropzone>
+                        <img v-if="previewUrl" :src="previewUrl" alt="Preview" style="max-width: 100px; margin-top: 10px;" />
                     </div>
                     <div class="mt-3">
                       <FormLabel for="form-role" class="form-label">Gender

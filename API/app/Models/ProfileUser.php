@@ -41,6 +41,7 @@ class ProfileUser extends Model
         'avatar',
         'designation',
         'date_of_joining',
+        'dob',
     ];
 
     protected $searchable = [
