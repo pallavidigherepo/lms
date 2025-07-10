@@ -28,8 +28,15 @@ tableStore.setupTable({
         { key: 'status', label: 'Status', options: ['active', 'inactive'] },
     ],
 })
-tableStore.setSubPages(['CreateUser', 'ViewUser', 'EditUser'])
+
+tableStore.setSubPages({
+    view: { name: 'ViewUser', path: '/users/view/:id' },
+    edit: { name: 'EditUser', path: '/users/:id/edit' },
+    create: { name: 'CreateUser', path: '/users/create' },
+})
+
 tableStore.setListingView(['Users'])
+
 const {
     data,
     search,
@@ -275,7 +282,7 @@ const handleDelete: any = (row: any) => tableStore.handleDelete(row)
                                                     </div>
                                                     <div class="ml-3.5">
                                                         <a href="#" class="font-medium whitespace-nowrap"
-                                                            @click="view(row)">
+                                                            @click.prevent="view(row)">
                                                             {{ row.name }}
                                                         </a>
                                                         <div class="text-slate-500 text-xs whitespace-nowrap mt-0.5">
@@ -329,7 +336,7 @@ const handleDelete: any = (row: any) => tableStore.handleDelete(row)
                                                                 class="w-5 h-5 stroke-slate-400/70 fill-slate-400/70" />
                                                         </Menu.Button>
                                                         <Menu.Items class="w-40">
-                                                            <Menu.Item @click="() => view(row)">
+                                                            <Menu.Item @click.prevent="() => view(row)">
                                                                 <Lucide icon="EyeIcon" class="w-4 h-4 mr-2" />
                                                                 View
                                                             </Menu.Item>

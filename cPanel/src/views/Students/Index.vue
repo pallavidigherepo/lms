@@ -96,61 +96,63 @@ import DataTable from "@/custom_components/DataTable/UserTable.vue";
                   @view="view"
                   @edit="edit"
                   @delete="handleDelete"
+                  @search="onSearch"
+                  @sort="sortBy"
                 >
-                <template  v-slot:TableListHeader>
-                    <div class="flex flex-col p-5 box box--stacked">
-                        <div class="grid grid-cols-4 gap-5">
-                            <div
-                                class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                                <div class="text-base text-slate-500">Total Students</div>
-                                <div class="mt-1.5 text-2xl font-medium">457,204</div>
-                                <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                                    <div
-                                        class="flex items-center border border-danger/10 bg-danger/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-danger">
-                                        3%
-                                        <Lucide icon="ChevronDown" class="w-4 h-4 ml-px stroke-[1.5]" />
+                    <template  v-slot:TableListHeader>
+                        <div class="flex flex-col p-5 box box--stacked">
+                            <div class="grid grid-cols-4 gap-5">
+                                <div
+                                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
+                                    <div class="text-base text-slate-500">Total Students</div>
+                                    <div class="mt-1.5 text-2xl font-medium">457,204</div>
+                                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
+                                        <div
+                                            class="flex items-center border border-danger/10 bg-danger/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-danger">
+                                            3%
+                                            <Lucide icon="ChevronDown" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div
-                                class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                                <div class="text-base text-slate-500">Present Students</div>
-                                <div class="mt-1.5 text-2xl font-medium">122,721</div>
-                                <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                                    <div
-                                        class="flex items-center border border-success/10 bg-success/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-success">
-                                        2%
-                                        <Lucide icon="ChevronUp" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                <div
+                                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
+                                    <div class="text-base text-slate-500">Present Students</div>
+                                    <div class="mt-1.5 text-2xl font-medium">122,721</div>
+                                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
+                                        <div
+                                            class="flex items-center border border-success/10 bg-success/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-success">
+                                            2%
+                                            <Lucide icon="ChevronUp" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div
-                                class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                                <div class="text-base text-slate-500">Absent Students</div>
-                                <div class="mt-1.5 text-2xl font-mediumm">489,223</div>
-                                <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                                    <div
-                                        class="flex items-center border border-danger/10 bg-danger/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-danger">
-                                        3%
-                                        <Lucide icon="ChevronDown" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                <div
+                                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
+                                    <div class="text-base text-slate-500">Absent Students</div>
+                                    <div class="mt-1.5 text-2xl font-mediumm">489,223</div>
+                                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
+                                        <div
+                                            class="flex items-center border border-danger/10 bg-danger/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-danger">
+                                            3%
+                                            <Lucide icon="ChevronDown" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div
-                                class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
-                                <div class="text-base text-slate-500">Login Activity</div>
-                                <div class="mt-1.5 text-2xl font-mediumm">411,259</div>
-                                <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
-                                    <div
-                                        class="flex items-center border border-success/10 bg-success/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-success">
-                                        8%
-                                        <Lucide icon="ChevronUp" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                <div
+                                    class="col-span-4 md:col-span-2 xl:col-span-1 p-5 border border-dashed rounded-[0.6rem] border-slate-300/80 box shadow-sm">
+                                    <div class="text-base text-slate-500">Login Activity</div>
+                                    <div class="mt-1.5 text-2xl font-mediumm">411,259</div>
+                                    <div class="absolute inset-y-0 right-0 flex flex-col justify-center mr-5">
+                                        <div
+                                            class="flex items-center border border-success/10 bg-success/10 rounded-full pl-[7px] pr-1 py-[2px] text-xs font-medium text-success">
+                                            8%
+                                            <Lucide icon="ChevronUp" class="w-4 h-4 ml-px stroke-[1.5]" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </template>
+                    </template>
                 </DataTable>
             </div>
         </div>
